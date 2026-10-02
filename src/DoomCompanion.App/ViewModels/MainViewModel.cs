@@ -284,19 +284,11 @@ public sealed partial class MainViewModel : ObservableObject
         Aplicar(_motor.AgregarMonstruo(AreaSeleccionada.Id, MonstruoAAgregar.Id));
     }
 
-    /// <summary>Clic en un monstruo del mapa: lo marca como eliminado (o lo revive).</summary>
-    public void AlternarMonstruoDelMapa(string areaId, string monstruoId)
-    {
-        var m = _motor?.MonstruosDe(areaId).FirstOrDefault(x => x.Id == monstruoId);
-        if (_motor is null || m is null) return;
-        Aplicar(_motor.MarcarMonstruo(areaId, monstruoId, !m.Muerto), seleccionar: areaId);
-    }
-
-    /// <summary>Clic en un objeto del mapa: lo marca como recogido.</summary>
-    public void AlternarObjetoDelMapa(string objetoId)
+    /// <summary>Clic en un encuentro o cadaver del mapa: se lee y, la primera vez, da lo que tenga.</summary>
+    public void RevisarFichaDelMapa(string areaId, string fichaId)
     {
         if (_motor is null) return;
-        Aplicar(_motor.RecogerObjeto(objetoId, !_motor.Estado.ObjetosRecogidos.Contains(objetoId)));
+        Aplicar(_motor.RevisarFicha(areaId, fichaId), seleccionar: areaId);
     }
 
     [RelayCommand]

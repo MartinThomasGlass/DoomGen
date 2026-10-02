@@ -132,8 +132,15 @@ public static class ValidadorGeometria
                 }
             }
             for (var o = 0; o < area.Objetos.Count; o++)
-                if (area.Objetos[o] is { X: int x, Y: int y } obj)
-                    fichas.Add((catalogo.BuscarObjeto(obj.Tipo)?.Nombre ?? obj.Tipo, $"{ruta}.objetos[{o}]", x, y, 1, 1));
+            {
+                var obj = area.Objetos[o];
+                var posiciones = obj.Posiciones ?? [];
+                if (posiciones.Count > obj.Cantidad)
+                    aviso($"{ruta}.objetos[{o}].posiciones", $"Hay {posiciones.Count} posiciones para {obj.Cantidad} ficha(s).");
+                var nombre = catalogo.BuscarObjeto(obj.Tipo)?.Nombre ?? mapa.ObjetosMision.FirstOrDefault(m => m.Id == obj.Tipo)?.Nombre ?? obj.Tipo;
+                foreach (var p in posiciones)
+                    fichas.Add((nombre, $"{ruta}.objetos[{o}]", p.X, p.Y, 1, 1));
+            }
             for (var f = 0; f < area.Fichas.Count; f++)
             {
                 var ficha = area.Fichas[f];

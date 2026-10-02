@@ -23,8 +23,7 @@ public partial class MainWindow : Window, IDialogos
         DataContext = _vm;
         Mapa.AreaClick += id => _vm.SeleccionarAreaCommand.Execute(id);
         Mapa.PuertaClick += id => _vm.AbrirPuertaCommand.Execute(id);
-        Mapa.MonstruoClick += (area, id) => _vm.AlternarMonstruoDelMapa(area, id);
-        Mapa.ObjetoClick += id => _vm.AlternarObjetoDelMapa(id);
+        Mapa.FichaClick += (area, id) => _vm.RevisarFichaDelMapa(area, id);
         PreviewKeyDown += AlPresionarTecla;
     }
 

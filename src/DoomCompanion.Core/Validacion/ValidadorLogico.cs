@@ -81,7 +81,7 @@ public static class ValidadorLogico
             if (puerta.Requisitos?.Recorrer().OfType<RequisitoEvento>().Any() != true)
                 Aviso($"puertas ({puerta.Id})", "Es de tipo \"evento\" pero sus requisitos no mencionan ningún evento.");
 
-        var activadosPorRecompensa = mapa.Areas.SelectMany(a => a.Recompensas)
+        var activadosPorRecompensa = mapa.Areas.SelectMany(TodasLasRecompensas)
             .Where(r => r.Tipo == TipoRecompensa.ActivarEvento).Select(r => r.Evento).ToHashSet();
         var eventosUsados = mapa.Puertas.SelectMany(x => x.Requisitos?.Recorrer() ?? [])
             .OfType<RequisitoEvento>().Select(r => r.Evento).ToHashSet();
@@ -119,7 +119,7 @@ public static class ValidadorLogico
             catalogo.BuscarObjeto(id)?.Valor ?? (mapa.ObjetosMision.Any(o => o.Id == id) ? valorMision : 1);
 
         var objetos = area.Objetos.Sum(o => ValorObjeto(o.Tipo) * o.Cantidad);
-        var recompensas = area.Recompensas.Sum(r => r.Tipo switch
+        var recompensas = TodasLasRecompensas(area).Sum(r => r.Tipo switch
         {
             TipoRecompensa.OtorgarObjeto when r.Objeto is not null => ValorObjeto(r.Objeto) * (r.Cantidad ?? 1),
             TipoRecompensa.DesbloquearPuerta or TipoRecompensa.ActivarEvento => 4,
@@ -128,6 +128,10 @@ public static class ValidadorLogico
         });
         return objetos + recompensas;
     }
+
+    /// <summary>Recompensas por despejar el area y las de sus encuentros y cadaveres.</summary>
+    internal static IEnumerable<Recompensa> TodasLasRecompensas(Area area) =>
+        area.Recompensas.Concat(area.Fichas.SelectMany(f => f.Recompensas));
 
     private static List<string> ExplicarBloqueo(Puerta puerta, Mapa mapa, Simulacion sim, Nombres nombres)
     {
@@ -290,7 +294,7 @@ internal sealed class Simulacion : IContextoRequisitos
         Despejadas.Add(areaId);
         foreach (var o in area.Objetos)
             Inventario[o.Tipo] = Inventario.GetValueOrDefault(o.Tipo) + o.Cantidad;
-        foreach (var r in area.Recompensas)
+        foreach (var r in ValidadorLogico.TodasLasRecompensas(area))
         {
             switch (r.Tipo)
             {
@@ -310,17 +314,17 @@ internal sealed class Simulacion : IContextoRequisitos
     public IEnumerable<string> FuentesDeObjeto(string objetoId) =>
         _mapa.Areas.Where(a =>
                 a.Objetos.Any(o => o.Tipo == objetoId) ||
-                a.Recompensas.Any(r => r.Tipo == TipoRecompensa.OtorgarObjeto && r.Objeto == objetoId))
+                ValidadorLogico.TodasLasRecompensas(a).Any(r => r.Tipo == TipoRecompensa.OtorgarObjeto && r.Objeto == objetoId))
             .Select(a => a.Id);
 
     public IEnumerable<string> FuentesDeEvento(string eventoId) =>
-        _mapa.Areas.Where(a => a.Recompensas.Any(r => r.Tipo == TipoRecompensa.ActivarEvento && r.Evento == eventoId))
+        _mapa.Areas.Where(a => ValidadorLogico.TodasLasRecompensas(a).Any(r => r.Tipo == TipoRecompensa.ActivarEvento && r.Evento == eventoId))
             .Select(a => a.Id);
 
     public int TotalEnMapa(string objetoId) =>
         _mapa.Areas.Sum(a =>
             a.Objetos.Where(o => o.Tipo == objetoId).Sum(o => o.Cantidad) +
-            a.Recompensas.Where(r => r.Tipo == TipoRecompensa.OtorgarObjeto && r.Objeto == objetoId).Sum(r => r.Cantidad ?? 1));
+            ValidadorLogico.TodasLasRecompensas(a).Where(r => r.Tipo == TipoRecompensa.OtorgarObjeto && r.Objeto == objetoId).Sum(r => r.Cantidad ?? 1));
 
     bool IContextoRequisitos.AreaDespejada(string areaId) => Despejadas.Contains(areaId);
     int IContextoRequisitos.CantidadEnInventario(string objetoId) => Inventario.GetValueOrDefault(objetoId);

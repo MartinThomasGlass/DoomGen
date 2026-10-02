@@ -14,8 +14,9 @@ public sealed record FichaEnPlano(
     int Ancho,
     int Alto,
     ColorFigura? Color = null,
-    int Cantidad = 1,
-    bool Automatica = false)
+    bool Automatica = false,
+    bool Interactiva = false,
+    bool Revisada = false)
 {
     public IEnumerable<Celda> Celdas()
     {
@@ -26,9 +27,10 @@ public sealed record FichaEnPlano(
 }
 
 /// <summary>
-/// Calcula donde va cada ficha de un area: escenografia, objetos sin recoger, marines (en el
-/// area inicial) y monstruos vivos. Respeta las posiciones del mapa y ubica el resto en casillas
-/// libres, siempre de la misma forma para un mismo estado (para que el plano no "salte").
+/// Calcula donde va cada ficha de un area para armarla en la mesa: escenografia, objetos, marines
+/// (en el area inicial) y monstruos. Es el plano de preparacion: no cambia al matar monstruos ni
+/// al recoger objetos (eso pasa en la mesa). Una ficha por casilla. Respeta las posiciones del
+/// mapa y ubica el resto en casillas libres, siempre de la misma forma.
 /// </summary>
 public static class DistribucionFichas
 {
@@ -50,7 +52,7 @@ public static class DistribucionFichas
 
     public static IReadOnlyList<FichaEnPlano> Calcular(Mapa mapa, Catalogo catalogo, EstadoPartida estado, Area area)
     {
-        var pendientes = new List<(ClaseFicha Clase, string Id, string Tipo, PosicionFicha? Pos, int Ancho, int Alto, ColorFigura? Color, int Cantidad, bool Rotable)>();
+        var pendientes = new List<(ClaseFicha Clase, string Id, string Tipo, PosicionFicha? Pos, int Ancho, int Alto, ColorFigura? Color, bool Rotable, bool Interactiva)>();
 
         // Escenografia.
         for (var i = 0; i < area.Fichas.Count; i++)
@@ -60,16 +62,14 @@ public static class DistribucionFichas
             {
                 var pos = f.Posiciones?.ElementAtOrDefault(k);
                 var (an, al) = TamanoEscenografia(catalogo, f.Tipo, pos);
-                pendientes.Add((ClaseFicha.Escenografia, $"{area.Id}-f{i}-{k}", f.Tipo, pos, an, al, null, 1, false));
+                pendientes.Add((ClaseFicha.Escenografia, IdFicha(area.Id, i, k), f.Tipo, pos, an, al, null, false, f.EsInteractiva));
             }
         }
 
-        // Objetos sin recoger.
-        foreach (var o in area.Objetos.Where(o => !estado.ObjetosRecogidos.Contains(o.Id)))
-        {
-            var pos = o.X is int x && o.Y is int y ? new PosicionFicha { X = x, Y = y } : null;
-            pendientes.Add((ClaseFicha.Objeto, o.Id, o.Tipo, pos, 1, 1, null, o.Cantidad, false));
-        }
+        // Objetos: una ficha por unidad.
+        foreach (var o in area.Objetos)
+            for (var k = 0; k < o.Cantidad; k++)
+                pendientes.Add((ClaseFicha.Objeto, k == 0 ? o.Id : $"{o.Id}-{k}", o.Tipo, o.Posiciones?.ElementAtOrDefault(k), 1, 1, null, false, false));
 
         // Marines en el area inicial.
         if (area.Id == mapa.Escenario.AreaInicial)
@@ -77,16 +77,16 @@ public static class DistribucionFichas
             {
                 var color = estado.ColoresMarines[i];
                 pendientes.Add((ClaseFicha.Marine, "marine-" + color.ToString().ToLowerInvariant(), "marine",
-                    mapa.Escenario.InicioMarines?.ElementAtOrDefault(i), 1, 1, color, 1, false));
+                    mapa.Escenario.InicioMarines?.ElementAtOrDefault(i), 1, 1, color, false, false));
             }
 
-        // Monstruos vivos.
+        // Monstruos del mapa (las apariciones del invasor se ubican en la mesa, no aca).
         foreach (var m in estado.Monstruos.GetValueOrDefault(area.Id) ?? [])
         {
-            if (m.Muerto) continue;
+            if (m.Agregado) continue;
             var pos = m.X is int x && m.Y is int y ? new PosicionFicha { X = x, Y = y, Rotacion = m.Rotacion } : null;
             var (an, al) = TamanoMonstruo(catalogo, m.Tipo, m.Rotacion);
-            pendientes.Add((ClaseFicha.Monstruo, m.Id, m.Tipo, pos, an, al, m.Color, 1, an != al));
+            pendientes.Add((ClaseFicha.Monstruo, m.Id, m.Tipo, pos, an, al, m.Color, an != al, false));
         }
 
         var celdasArea = area.Tiles.SelectMany(t => GeometriaTiles.Celdas(t, catalogo)).ToHashSet();
@@ -105,7 +105,8 @@ public static class DistribucionFichas
         // 1. Las que traen posicion del mapa.
         foreach (var p in pendientes.Where(p => p.Pos is not null))
         {
-            var ficha = new FichaEnPlano(p.Clase, p.Id, p.Tipo, p.Pos!.X, p.Pos.Y, p.Ancho, p.Alto, p.Color, p.Cantidad);
+            var ficha = new FichaEnPlano(p.Clase, p.Id, p.Tipo, p.Pos!.X, p.Pos.Y, p.Ancho, p.Alto, p.Color,
+                Interactiva: p.Interactiva, Revisada: estado.FichasRevisadas.Contains(p.Id));
             foreach (var c in ficha.Celdas()) ocupadas.Add(c);
             resultado.Add(ficha);
         }
@@ -119,7 +120,8 @@ public static class DistribucionFichas
             {
                 foreach (var (an, al) in medidas)
                 {
-                    var prueba = new FichaEnPlano(p.Clase, p.Id, p.Tipo, c.X, c.Y, an, al, p.Color, p.Cantidad, Automatica: true);
+                    var prueba = new FichaEnPlano(p.Clase, p.Id, p.Tipo, c.X, c.Y, an, al, p.Color, Automatica: true,
+                        Interactiva: p.Interactiva, Revisada: estado.FichasRevisadas.Contains(p.Id));
                     if (prueba.Celdas().All(x => celdasArea.Contains(x) && !ocupadas.Contains(x)))
                     {
                         ubicada = prueba;
@@ -129,13 +131,17 @@ public static class DistribucionFichas
                 if (ubicada is not null) break;
             }
             // Area llena: se apila en la primera casilla (mejor que no mostrarla).
-            ubicada ??= new FichaEnPlano(p.Clase, p.Id, p.Tipo, orden[0].X, orden[0].Y, p.Ancho, p.Alto, p.Color, p.Cantidad, Automatica: true);
+            ubicada ??= new FichaEnPlano(p.Clase, p.Id, p.Tipo, orden[0].X, orden[0].Y, p.Ancho, p.Alto, p.Color, Automatica: true,
+                Interactiva: p.Interactiva, Revisada: estado.FichasRevisadas.Contains(p.Id));
             foreach (var c in ubicada.Celdas()) ocupadas.Add(c);
             resultado.Add(ubicada);
         }
 
         return resultado.OrderBy(f => f.Clase).ToList();
     }
+
+    /// <summary>Id de una ficha de escenografia: area, indice en "fichas" y numero de unidad.</summary>
+    public static string IdFicha(string areaId, int indiceFicha, int unidad) => $"{areaId}-f{indiceFicha}-{unidad}";
 
     private static int HashEstable(string s)
     {

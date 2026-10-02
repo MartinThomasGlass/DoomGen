@@ -167,10 +167,12 @@
         "tipo": { "$ref": "#/$defs/id" },
         "cantidad": { "type": "integer", "minimum": 1, "default": 1 },
         "texto": { "type": "string" },
-        "x": { "type": "integer", "minimum": 0, "description": "Casilla de la ficha (opcional)." },
-        "y": { "type": "integer", "minimum": 0, "description": "Casilla de la ficha (opcional)." }
-      },
-      "dependentRequired": { "x": ["y"], "y": ["x"] }
+        "posiciones": {
+          "type": "array",
+          "description": "Casilla de cada ficha (una por unidad: no puede haber dos fichas en la misma casilla). Opcional: las que falten las ubica la app.",
+          "items": { "$ref": "#/$defs/posicionFicha" }
+        }
+      }
     },
     "fichaEnArea": {
       "type": "object",
@@ -184,6 +186,12 @@
           "type": "array",
           "description": "Posición de cada ficha. Opcional: las que falten las ubica la app.",
           "items": { "$ref": "#/$defs/posicionFicha" }
+        },
+        "texto": { "type": "string", "description": "Encuentros y cadáveres: lo que se lee al revisar la ficha en la app." },
+        "recompensas": {
+          "type": "array",
+          "description": "Encuentros y cadáveres: lo que se obtiene al revisarlos (una sola vez).",
+          "items": { "$ref": "#/$defs/recompensa" }
         }
       }
     },

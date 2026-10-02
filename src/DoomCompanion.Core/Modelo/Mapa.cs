@@ -121,9 +121,8 @@ public sealed class ObjetoEnArea
     public string Tipo { get; set; } = "";
     public int Cantidad { get; set; } = 1;
     public string? Texto { get; set; }
-    /// <summary>Casilla de la ficha (opcional; sin esto la ubica la app).</summary>
-    public int? X { get; set; }
-    public int? Y { get; set; }
+    /// <summary>Casilla de cada ficha (una por unidad; opcional). Las que falten las ubica la app.</summary>
+    public List<PosicionFicha>? Posiciones { get; set; }
 }
 
 public sealed class FichaEnArea
@@ -133,6 +132,17 @@ public sealed class FichaEnArea
     public string? Nota { get; set; }
     /// <summary>Posicion de cada ficha (opcional). Las que falten las ubica la app.</summary>
     public List<PosicionFicha>? Posiciones { get; set; }
+    /// <summary>
+    /// Encuentros y cadaveres: texto que se lee al revisar la ficha en la app. Hace que la ficha
+    /// sea interactiva.
+    /// </summary>
+    public string? Texto { get; set; }
+    /// <summary>Lo que se obtiene al revisar la ficha (una sola vez).</summary>
+    public List<Recompensa> Recompensas { get; set; } = [];
+
+    /// <summary>Encuentros y cadaveres (o cualquier ficha con texto o recompensas) se pueden revisar en la app.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool EsInteractiva => Tipo is "encuentro" or "cadaver" || Texto is not null || Recompensas.Count > 0;
 }
 
 /// <summary>

@@ -172,8 +172,8 @@ public sealed class MotorJuego : IContextoRequisitos
         foreach (var g in fichas.Where(f => f.Clase == ClaseFicha.Monstruo).GroupBy(f => f.Tipo))
             lineas.Add($"Monstruo: {g.Count()} × {NombreMonstruo(g.Key)} — " +
                        string.Join(", ", g.Select(f => $"{NombreColor(f.Color!.Value)} en {En(f)}")));
-        foreach (var f in fichas.Where(f => f.Clase == ClaseFicha.Objeto))
-            lineas.Add($"Objeto: {f.Cantidad} × {NombreObjeto(f.Tipo)} en {En(f)}");
+        foreach (var g in fichas.Where(f => f.Clase == ClaseFicha.Objeto).GroupBy(f => f.Tipo))
+            lineas.Add($"Objeto: {g.Count()} × {NombreObjeto(g.Key)} en " + string.Join(", ", g.Select(En)));
         foreach (var g in fichas.Where(f => f.Clase == ClaseFicha.Escenografia).GroupBy(f => f.Tipo))
         {
             var nota = area.Fichas.FirstOrDefault(x => x.Tipo == g.Key)?.Nota;
@@ -255,6 +255,40 @@ public sealed class MotorJuego : IContextoRequisitos
         mensajes.Add(new Mensaje(TipoMensaje.Despeje, area.Nombre + ": despejada", area.Textos.Despejar));
 
         foreach (var r in area.Recompensas)
+            mensajes.Add(AplicarRecompensa(r));
+
+        var cv = Mapa.Escenario.CondicionVictoria;
+        if (cv.Tipo == TipoVictoria.DespejarArea && cv.Area == area.Id)
+            mensajes.Add(DeclararResultadoInterno(ResultadoPartida.Victoria));
+        VerificarVictoriaPorEvento(mensajes);
+    }
+
+    /// <summary>
+    /// Revisar un encuentro o un cadaver: se lee su texto y, la primera vez, se otorgan sus
+    /// recompensas.
+    /// </summary>
+    public ResultadoAccion RevisarFicha(string areaId, string fichaId)
+    {
+        var area = Mapa.BuscarArea(areaId);
+        if (area is null || !AreaRevelada(areaId)) return ResultadoAccion.Falla();
+        var ficha = area.Fichas.Select((f, i) => (f, i))
+            .SelectMany(x => Enumerable.Range(0, x.f.Cantidad).Select(k => (x.f, Id: DistribucionFichas.IdFicha(areaId, x.i, k))))
+            .FirstOrDefault(x => x.Id == fichaId).f;
+        if (ficha is null || !ficha.EsInteractiva) return ResultadoAccion.Falla();
+
+        var nombre = Catalogo.BuscarFicha(ficha.Tipo)?.Nombre ?? ficha.Tipo;
+        var texto = ficha.Texto ?? (ficha.Tipo == "cadaver" ? "No encuentran nada útil." : "No pasa nada.");
+        if (!Estado.FichasRevisadas.Add(fichaId))
+            return ResultadoAccion.Ok(new Mensaje(TipoMensaje.Encuentro, nombre + " (ya revisado)", texto));
+
+        var mensajes = new List<Mensaje> { new(TipoMensaje.Encuentro, nombre, texto) };
+        foreach (var r in ficha.Recompensas) mensajes.Add(AplicarRecompensa(r));
+        VerificarVictoriaPorEvento(mensajes);
+        return Registrar(ResultadoAccion.Ok(mensajes));
+    }
+
+    private Mensaje AplicarRecompensa(Recompensa r)
+    {
         {
             string? detalle = null;
             switch (r.Tipo)
@@ -274,13 +308,8 @@ public sealed class MotorJuego : IContextoRequisitos
                     Estado.AreasConocidas.Add(r.Area);
                     break;
             }
-            mensajes.Add(new Mensaje(TipoMensaje.Recompensa, "Recompensa", r.Texto, detalle));
+            return new Mensaje(TipoMensaje.Recompensa, "Recompensa", r.Texto, detalle);
         }
-
-        var cv = Mapa.Escenario.CondicionVictoria;
-        if (cv.Tipo == TipoVictoria.DespejarArea && cv.Area == area.Id)
-            mensajes.Add(DeclararResultadoInterno(ResultadoPartida.Victoria));
-        VerificarVictoriaPorEvento(mensajes);
     }
 
     // ---------------------------------------------------------------- Objetos e inventario

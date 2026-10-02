@@ -22,10 +22,19 @@ public class MotorJuegoTests
         }
     }
 
+    /// <summary>Cadaver del pasillo (a2): tiene la llave amarilla.</summary>
+    private const string CadaverA2 = "a2-f0-0";
+    /// <summary>Encuentro de la consola (a3): tiene el disco de datos.</summary>
+    private const string ConsolaA3 = "a3-f0-0";
+
     private static void RecogerTodo(MotorJuego motor, string areaId)
     {
-        foreach (var o in motor.Mapa.BuscarArea(areaId)!.Objetos)
+        var area = motor.Mapa.BuscarArea(areaId)!;
+        foreach (var o in area.Objetos)
             motor.RecogerObjeto(o.Id, true);
+        for (var i = 0; i < area.Fichas.Count; i++)
+            if (area.Fichas[i].EsInteractiva)
+                motor.RevisarFicha(areaId, DistribucionFichas.IdFicha(areaId, i, 0));
     }
 
     // ------------------------------------------------------------ Niebla de guerra
@@ -36,7 +45,7 @@ public class MotorJuegoTests
         var motor = NuevoMotorEjemplo();
 
         Assert.Equal(["a1"], motor.Estado.AreasReveladas);
-        Assert.Equal(["p1", "p2", "p7"], motor.PuertasVisibles.Select(p => p.Id).Order());
+        Assert.Equal(["p1", "p2"], motor.PuertasVisibles.Select(p => p.Id).Order());
         Assert.Equal(3, motor.MonstruosDe("a1").Count);
         Assert.Empty(motor.MonstruosDe("a2"));
     }
@@ -102,7 +111,7 @@ public class MotorJuegoTests
     {
         var motor = NuevoMotorEjemplo();
         motor.AbrirPuerta("p1");
-        motor.RecogerObjeto("o3", true); // llave amarilla en a2
+        motor.RevisarFicha("a2", CadaverA2); // el tecnico tiene la llave amarilla
 
         var r = motor.AbrirPuerta("p2");
 
@@ -111,15 +120,53 @@ public class MotorJuegoTests
     }
 
     [Fact]
-    public void ObjetoNoRecogidoNoCuentaParaRequisitos()
+    public void LlaveQuitadaDelInventarioNoAbre()
     {
         var motor = NuevoMotorEjemplo();
         motor.AbrirPuerta("p1");
-        motor.RecogerObjeto("o3", true);
-        motor.RecogerObjeto("o3", false);
+        motor.RevisarFicha("a2", CadaverA2);
+        motor.AjustarInventario("llave-amarilla", -1);
 
         Assert.False(motor.AbrirPuerta("p2").Exito);
         Assert.Equal(0, motor.Estado.Inventario.GetValueOrDefault("llave-amarilla"));
+    }
+
+    [Fact]
+    public void RevisarUnCadaverDaSuRecompensaUnaSolaVez()
+    {
+        var motor = NuevoMotorEjemplo();
+        motor.AbrirPuerta("p1");
+
+        var primera = motor.RevisarFicha("a2", CadaverA2);
+        var segunda = motor.RevisarFicha("a2", CadaverA2);
+
+        Assert.Equal([TipoMensaje.Encuentro, TipoMensaje.Recompensa], primera.Mensajes.Select(m => m.Tipo));
+        Assert.Contains("técnico de mantenimiento", primera.Mensajes[0].Texto);
+        Assert.Contains("ya revisado", segunda.Mensajes.Single().Titulo);
+        Assert.Equal(1, motor.Estado.Inventario["llave-amarilla"]);
+        Assert.Contains(CadaverA2, motor.Estado.FichasRevisadas);
+    }
+
+    [Fact]
+    public void NoSePuedeRevisarUnaFichaDeUnAreaOcultaNiUnObstaculo()
+    {
+        var motor = NuevoMotorEjemplo();
+
+        Assert.False(motor.RevisarFicha("a2", CadaverA2).Exito);   // a2 todavia oculta
+        Assert.False(motor.RevisarFicha("a1", "a1-f0-0").Exito);   // obstaculo del hangar
+    }
+
+    [Fact]
+    public void ElEncuentroDeLaConsolaDaElDiscoDeDatos()
+    {
+        var motor = NuevoMotorEjemplo();
+        motor.AbrirPuerta("p1");
+        motor.RevisarFicha("a2", CadaverA2);
+        motor.AbrirPuerta("p2");
+
+        motor.RevisarFicha("a3", ConsolaA3);
+
+        Assert.Equal(1, motor.Estado.Inventario["disco-datos"]);
     }
 
     [Fact]
@@ -135,16 +182,18 @@ public class MotorJuegoTests
     }
 
     [Fact]
-    public void TeleportadorRequierePuertaAbierta()
+    public void ElTeleportadorSeEnciendeConLaEnergiaYUneLaSalaDeControlConLaDeBombas()
     {
         var motor = NuevoMotorEjemplo();
+        motor.AbrirPuerta("p1");
+        motor.RevisarFicha("a2", CadaverA2);
+        motor.AbrirPuerta("p2");
         Assert.False(motor.AbrirPuerta("p7").Exito);
 
-        motor.AbrirPuerta("p1");
-        MatarTodo(motor, "a2");
-        motor.AbrirPuerta("p3");
+        MatarTodo(motor, "a3"); // activa ev-energia
 
         Assert.True(motor.AbrirPuerta("p7").Exito);
+        Assert.Contains("a4", motor.Estado.AreasReveladas);
     }
 
     [Fact]
@@ -280,7 +329,7 @@ public class MotorJuegoTests
     {
         var motor = NuevoMotorEjemplo();
         motor.AbrirPuerta("p1");
-        motor.RecogerObjeto("o3", true);
+        motor.RevisarFicha("a2", CadaverA2);
         motor.AbrirPuerta("p2");
         Assert.False(motor.AbrirPuerta("p4").Exito);
 

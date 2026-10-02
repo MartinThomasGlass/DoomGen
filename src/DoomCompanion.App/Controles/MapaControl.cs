@@ -46,8 +46,8 @@ public sealed class MapaControl : Border
 
     public event Action<string>? AreaClick;
     public event Action<string>? PuertaClick;
-    public event Action<string, string>? MonstruoClick;
-    public event Action<string>? ObjetoClick;
+    /// <summary>Clic en un encuentro o un cadaver: (area, id de ficha).</summary>
+    public event Action<string, string>? FichaClick;
 
     public static readonly DependencyProperty MotorProperty = DependencyProperty.Register(
         nameof(Motor), typeof(MotorJuego), typeof(MapaControl), new PropertyMetadata(null, (d, _) => ((MapaControl)d).Redibujar()));
@@ -105,10 +105,17 @@ public sealed class MapaControl : Border
         // Limites solo de lo visible: el tamaño del lienzo no puede delatar areas ocultas.
         // Se deja lugar arriba para los rotulos y el desplazamiento es entero para que las
         // texturas queden alineadas con las casillas.
-        var todos = piezas.SelectMany(p => p.Celdas).Select(c => new Rect(c.X, c.Y, 1, 1)).Concat(rectsPuertas.Values).ToList();
+        // Los rotulos van al costado de las areas: se ubican antes para que el lienzo los incluya.
+        var ocupadas = piezas.SelectMany(p => p.Celdas).ToHashSet();
+        var rotulos = new List<(TextBlock Texto, Rect Lugar)>();
+        foreach (var grupo in piezas.GroupBy(p => p.Area))
+            rotulos.Add(UbicarRotulo(grupo.Key, grupo.ToList(), motor, ocupadas, rotulos.Select(r => r.Lugar).ToList()));
+
+        var todos = piezas.SelectMany(p => p.Celdas).Select(c => new Rect(c.X, c.Y, 1, 1))
+            .Concat(rectsPuertas.Values).Concat(rotulos.Select(r => r.Lugar)).ToList();
         if (todos.Count == 0) return;
         var minX = (int)Math.Floor(todos.Min(r => r.Left)) - 1;
-        var minY = (int)Math.Floor(todos.Min(r => r.Top)) - 2;
+        var minY = (int)Math.Floor(todos.Min(r => r.Top)) - 1;
         var maxX = (int)Math.Ceiling(todos.Max(r => r.Right)) + 1;
         var maxY = (int)Math.Ceiling(todos.Max(r => r.Bottom)) + 1;
         var ancho = Math.Max(maxX - minX, MinAncho);
@@ -215,10 +222,12 @@ public sealed class MapaControl : Border
         foreach (var puerta in puertas)
             DibujarPuerta(puerta, rectsPuertas[puerta.Id], motor, P);
 
-        // 11. Rotulos.
-        var ocupadas = reveladas.SelectMany(p => p.Celdas).ToHashSet();
-        foreach (var grupo in piezas.GroupBy(p => p.Area))
-            DibujarRotulo(grupo.Key, grupo.ToList(), motor, ocupadas, P);
+        // 11. Rotulos al costado de cada area, como en DoomGen.
+        foreach (var (texto, lugar) in rotulos)
+        {
+            Ubicar(texto, P(lugar.Left, lugar.Top));
+            _canvas.Children.Add(texto);
+        }
     }
 
     /// <summary>
@@ -292,7 +301,7 @@ public sealed class MapaControl : Border
             {
                 var cat = catalogo.BuscarMonstruo(ficha.Tipo);
                 archivo = $"{cat?.Imagen ?? ficha.Tipo}_{Sufijo(ficha.Color!.Value)}.png";
-                nombre = $"{cat?.Nombre ?? ficha.Tipo} ({MotorJuego.NombreColor(ficha.Color.Value)})\nClic: marcar como eliminado";
+                nombre = $"{cat?.Nombre ?? ficha.Tipo} ({MotorJuego.NombreColor(ficha.Color.Value)})";
                 sigla = cat?.Sigla ?? ficha.Tipo[..Math.Min(3, ficha.Tipo.Length)].ToUpperInvariant();
                 fondo = ColorDe(ficha.Color.Value);
                 break;
@@ -307,7 +316,7 @@ public sealed class MapaControl : Border
             {
                 var cat = catalogo.BuscarObjeto(ficha.Tipo);
                 archivo = cat?.Imagen ?? catalogo.BuscarFicha("encuentro")?.Imagen ?? "";
-                nombre = $"{(ficha.Cantidad > 1 ? $"{ficha.Cantidad} × " : "")}{motor.NombreObjeto(ficha.Tipo)}\nClic: marcar como recogido";
+                nombre = motor.NombreObjeto(ficha.Tipo);
                 sigla = cat?.Sigla ?? "?";
                 fondo = (cat?.Categoria ?? CategoriaObjeto.Mision) switch
                 {
@@ -331,8 +340,8 @@ public sealed class MapaControl : Border
             {
                 var cat = catalogo.BuscarFicha(ficha.Tipo);
                 archivo = cat?.Imagen ?? "";
-                nombre = cat?.Nombre ?? ficha.Tipo;
-                sigla = "";
+                nombre = (cat?.Nombre ?? ficha.Tipo) + (ficha.Interactiva ? (ficha.Revisada ? "\n(ya revisado: clic para volver a leer)" : "\nClic para revisar") : "");
+                sigla = ficha.Tipo == "encuentro" ? "?" : "";
                 fondo = Color.FromRgb(0x30, 0x30, 0x34);
                 redonda = false;
                 break;
@@ -352,29 +361,17 @@ public sealed class MapaControl : Border
             elemento = DibujarFichaPropia(ficha, sigla, fondo, redonda, P);
         }
 
-        if (ficha.Cantidad > 1)
-        {
-            var insignia = new Border
-            {
-                Background = Brushes.Black,
-                CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(4, 0, 4, 0),
-                Child = new TextBlock { Text = $"×{ficha.Cantidad}", Foreground = Brushes.White, FontSize = 12, FontWeight = FontWeights.Bold },
-                IsHitTestVisible = false,
-            };
-            Ubicar(insignia, P(ficha.X + ficha.Ancho - 0.45, ficha.Y + ficha.Alto - 0.4));
-            _canvas.Children.Add(insignia);
-        }
-
+        // El plano es de referencia: solo los encuentros y cadaveres se tocan (para leerlos).
         elemento.IsHitTestVisible = true;
         elemento.ToolTip = nombre;
-        if (ficha.Clase is ClaseFicha.Monstruo or ClaseFicha.Objeto)
+        if (ficha.Interactiva)
         {
+            if (ficha.Revisada) elemento.Opacity = 0.45;
+            else elemento.Effect = new DropShadowEffect { Color = Color.FromRgb(0xFF, 0xD5, 0x00), BlurRadius = 14, ShadowDepth = 0, Opacity = 1 };
             elemento.Cursor = Cursors.Hand;
             elemento.MouseLeftButtonDown += (_, e) =>
             {
-                if (ficha.Clase == ClaseFicha.Monstruo) MonstruoClick?.Invoke(areaId, ficha.Id);
-                else ObjetoClick?.Invoke(ficha.Id);
+                FichaClick?.Invoke(areaId, ficha.Id);
                 e.Handled = true;
             };
         }
@@ -615,76 +612,58 @@ public sealed class MapaControl : Border
     }
 
     /// <summary>
-    /// Rotulo del area en su color, arriba de su pieza principal y por fuera (como DoomGen).
-    /// Si ahi tapa otra area, va adentro de la pieza.
+    /// Rotulo del area en su color, al costado del area (izquierda, derecha, arriba o abajo, el
+    /// primer lugar libre), como en DoomGen. Sin contadores: solo el nombre.
     /// </summary>
-    private void DibujarRotulo(Area area, List<PiezaVisible> piezas, MotorJuego motor, HashSet<Celda> ocupadas, Func<double, double, Point> P)
+    private static (TextBlock Texto, Rect Lugar) UbicarRotulo(Area area, List<PiezaVisible> piezas, MotorJuego motor, HashSet<Celda> ocupadas, List<Rect> rotulos)
     {
         var conocida = motor.AreaConocida(area.Id);
-        var despejada = motor.Estado.AreasDespejadas.Contains(area.Id);
-        var vivos = motor.MonstruosDe(area.Id).Count(m => !m.Muerto);
         var inicial = area.Id == motor.Mapa.Escenario.AreaInicial;
-        var color = conocida ? Color.FromRgb(0x55, 0x58, 0x66) : Mezclar(Colores.DeArea(motor.Mapa, area.Id), Colors.Black, 0.25);
+        var color = conocida ? Color.FromRgb(0x77, 0x7A, 0x88) : Colores.DeArea(motor.Mapa, area.Id);
+        if (inicial) color = Color.FromRgb(0x55, 0x58, 0x60);
 
-        var fila = new StackPanel { Orientation = Orientation.Horizontal, IsHitTestVisible = false };
-        fila.Children.Add(new TextBlock
+        var texto = new TextBlock
         {
-            Text = (conocida ? "? " : "") + area.Nombre.ToUpperInvariant() + (inicial ? "  ·  START" : ""),
+            Text = (conocida ? "? " : "") + area.Nombre.ToUpperInvariant() + (inicial ? "\nSTART" : ""),
             Foreground = new SolidColorBrush(color),
-            FontSize = 17,
+            FontSize = 22,
             FontWeight = FontWeights.Black,
-            VerticalAlignment = VerticalAlignment.Center,
-            Effect = new DropShadowEffect { Color = Colors.White, BlurRadius = 6, ShadowDepth = 0, Opacity = 1 },
-        });
-        if (!conocida)
+            TextAlignment = TextAlignment.Center,
+            IsHitTestVisible = false,
+            Effect = new DropShadowEffect { Color = Colors.White, BlurRadius = 5, ShadowDepth = 0, Opacity = 1 },
+        };
+        texto.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        var ancho = texto.DesiredSize.Width / Celda;
+        var alto = texto.DesiredSize.Height / Celda;
+
+        var celdas = piezas.SelectMany(p => p.Celdas).ToList();
+        var izq = celdas.Min(c => c.X);
+        var der = celdas.Max(c => c.X) + 1;
+        var arriba = celdas.Min(c => c.Y);
+        var abajo = celdas.Max(c => c.Y) + 1;
+        var medioY = (arriba + abajo) / 2.0 - alto / 2;
+        var medioX = (izq + der) / 2.0 - ancho / 2;
+        const double separacion = 0.6;
+
+        var candidatos = new[]
         {
-            var (texto, fondo) = vivos > 0 ? ($"☠ {vivos}", Colores.ConEnemigos) : despejada ? ("✔", Colores.Despejada) : ("", null);
-            if (fondo is not null)
-                fila.Children.Add(new Border
-                {
-                    Background = fondo,
-                    CornerRadius = new CornerRadius(8),
-                    Padding = new Thickness(7, 0, 7, 1),
-                    Margin = new Thickness(6, 0, 0, 0),
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Child = new TextBlock { Text = texto, Foreground = Brushes.White, FontSize = 14, FontWeight = FontWeights.Bold },
-                });
-        }
-        fila.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        var tam = fila.DesiredSize;
-
-        var principal = piezas.OrderByDescending(p => p.Celdas.Count).First().Celdas;
-        var izq = principal.Min(c => c.X);
-        var arriba = principal.Min(c => c.Y);
-        var der = principal.Max(c => c.X) + 1;
-        var abajo = principal.Max(c => c.Y) + 1;
-
-        var anchoCeldas = tam.Width / Celda;
-        var altoCeldas = tam.Height / Celda;
-        var afuera = new Rect(izq, arriba - 0.45 - altoCeldas, anchoCeldas, altoCeldas);
-        var libre = true;
-        for (var y = (int)Math.Floor(afuera.Top); y < Math.Ceiling(afuera.Bottom) && libre; y++)
-            for (var x = (int)Math.Floor(afuera.Left); x < Math.Ceiling(afuera.Right) && libre; x++)
-                libre = !ocupadas.Contains(new Celda(x, y));
-
-        var posicion = libre
-            ? P(afuera.Left, afuera.Top)
-            : P((izq + der) / 2.0 - anchoCeldas / 2, (arriba + abajo) / 2.0 - altoCeldas / 2);
-        if (!libre)
+            new Rect(izq - separacion - ancho, medioY, ancho, alto),   // izquierda
+            new Rect(der + separacion, medioY, ancho, alto),           // derecha
+            new Rect(medioX, arriba - separacion - alto, ancho, alto), // arriba
+            new Rect(medioX, abajo + separacion, ancho, alto),         // abajo
+            new Rect(izq - separacion - ancho, arriba, ancho, alto),   // arriba a la izquierda
+            new Rect(der + separacion, arriba, ancho, alto),           // arriba a la derecha
+        };
+        bool Libre(Rect r)
         {
-            var placa = new Border
-            {
-                Background = new SolidColorBrush(Color.FromArgb(0xD8, 0xF4, 0xF4, 0xF6)),
-                CornerRadius = new CornerRadius(4),
-                Width = tam.Width + 12,
-                Height = tam.Height + 4,
-                IsHitTestVisible = false,
-            };
-            Ubicar(placa, new Point(posicion.X - 6, posicion.Y - 2));
-            _canvas.Children.Add(placa);
+            for (var y = (int)Math.Floor(r.Top); y < Math.Ceiling(r.Bottom); y++)
+                for (var x = (int)Math.Floor(r.Left); x < Math.Ceiling(r.Right); x++)
+                    if (ocupadas.Contains(new Celda(x, y))) return false;
+            return !rotulos.Any(o => o.IntersectsWith(r));
         }
-        Ubicar(fila, posicion);
-        _canvas.Children.Add(fila);
+        var lugar = candidatos.FirstOrDefault(Libre);
+        if (lugar == default) lugar = candidatos[0];
+        return (texto, lugar);
     }
 
     // ------------------------------------------------------------------ Auxiliares

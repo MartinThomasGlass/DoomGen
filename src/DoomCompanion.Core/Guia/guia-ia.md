@@ -13,7 +13,7 @@ Este documento explica cómo escribir un **archivo de mapa** para *Doom Companio
 3. Al tocar una puerta:
    - si se cumplen sus requisitos, se abre, se revela el área del otro lado y se muestra su texto de entrada, las piezas a colocar, los monstruos y los objetos;
    - si no se cumplen, se muestra el texto `bloqueada` (una pista) y no se revela nada.
-4. El plano muestra, como en DoomGen, cada pieza y cada ficha en su casilla: monstruos (con el color de la figura), marines, objetos y escenografía.
+4. El plano muestra, como en DoomGen, cada pieza y cada ficha en su casilla: monstruos (con el color de la figura), marines, objetos y escenografía. Es un plano de preparación: la partida se juega en la mesa. En el plano solo se tocan las puertas, los teleportadores y los **encuentros y cadáveres**, que al revisarlos muestran su texto y dan lo que tengan (por ejemplo una llave).
 5. Los marines matan monstruos. Cuando un área queda sin monstruos vivos se **despeja**: se muestra el texto `despejar` y se otorgan sus **recompensas** (si tiene). Un área sin monstruos se despeja apenas se entra.
 6. Las recompensas pueden dar objetos al inventario compartido del equipo, desbloquear puertas (de cualquier área), activar eventos o revelar información.
 7. Los objetos colocados en un área entran al inventario cuando los marines los recogen.
@@ -67,8 +67,8 @@ Un área es una zona que se revela de una sola vez. Puede ocupar **varias piezas
 | `textos.entrar` | Se lee al revelar el área. |
 | `textos.despejar` | Se lee al despejarla. |
 | `monstruos[]` | `{"tipo": id de monstruo, "cantidad": n, "posiciones": [{"x", "y"}, ...]}`. Una posición por figura. |
-| `objetos[]` | Objetos visibles en el área: `{"id": único, "tipo": id de objeto, "cantidad": n, "texto": opcional, "x", "y"}`. |
-| `fichas[]` | Fichas de escenografía: `{"tipo": id de ficha, "cantidad": n, "nota": opcional, "posiciones": [{"x", "y", "rotacion"}, ...]}`. |
+| `objetos[]` | Objetos visibles en el área: `{"id": único, "tipo": id de objeto, "cantidad": n, "texto": opcional, "posiciones": [{"x", "y"}, ...]}`. Una posición por ficha. |
+| `fichas[]` | Fichas de escenografía: `{"tipo": id de ficha, "cantidad": n, "nota": opcional, "posiciones": [{"x", "y", "rotacion"}, ...]}`. Los encuentros y cadáveres llevan además `texto` y `recompensas` (ver 2.10). |
 | `recompensas[]` | Opcionales: se otorgan al despejar el área (ver 2.4). |
 | `notasInvasor` | Opcional, solo para el invasor. |
 
@@ -145,18 +145,34 @@ Cada ficha va en una casilla del plano, con las mismas coordenadas que las pieza
   - 1 casilla: trite, zombie, imp, archvile;
   - 2 casillas: demon, que ocupa (x, y) y (x+1, y), o con `"rotacion": 90` ocupa (x, y) y (x, y+1);
   - 4 casillas: mancubus, hell knight y cyberdemon, que ocupan un bloque de 2×2 desde (x, y).
-- **Objetos:** `x`, `y` en el objeto (1 casilla).
+- **Objetos:** una posición por ficha en `posiciones` (1 casilla cada una). Con `"cantidad": 2` van dos posiciones distintas.
 - **Escenografía:** una posición por ficha en `posiciones`. Las fichas de 1×2 o 1×3 son verticales en rotación 0; con `"rotacion": 90` quedan horizontales.
 - **Marines:** `escenario.inicioMarines`, hasta 3 casillas dentro del área inicial.
 - **Color de los monstruos:** no se indica. La app lo reparte entre los colores de los marines que juegan.
 
 Reglas de ubicación:
 
-- Toda ficha tiene que caer dentro de las casillas de su área. Dos fichas no pueden compartir casilla.
+- Toda ficha tiene que caer dentro de las casillas de su área. **Nunca dos fichas en la misma casilla**: si hay 2 fichas de munición, van en 2 casillas.
 - No tapes las casillas de conexión ni los callejones con escenografía: ahí van las puertas.
 - Los monstruos van entre la entrada y lo que custodian. Lo valioso (llaves, armas buenas, objetos de misión) va del otro lado de los monstruos, lejos de la puerta por la que se entra.
 - Los marines empiezan juntos, lejos de los monstruos del área inicial.
 - Si falta alguna posición, la app ubica esa ficha sola en una casilla libre. Igual conviene indicarlas todas.
+
+### 2.10 Encuentros y cadáveres
+
+Los encuentros (`encuentro`, el signo de pregunta) y los cadáveres (`cadaver`, 1×2) son fichas de escenografía que los marines **revisan**. En la app se tocan: se lee su `texto` y, la primera vez, se otorgan sus `recompensas` (los mismos tipos que en 2.4). Ejemplo:
+
+```json
+{
+  "tipo": "cadaver", "cantidad": 1, "posiciones": [{ "x": 22, "y": 10, "rotacion": 90 }],
+  "texto": "El cuerpo de un técnico. Todavía tiene enganchada al cinturón una tarjeta amarilla.",
+  "recompensas": [{ "tipo": "otorgarObjeto", "objeto": "llave-amarilla", "texto": "Obtienen la tarjeta amarilla." }]
+}
+```
+
+- Son ideales para llaves, objetos de misión y pistas. Un objeto de misión casi siempre va en un encuentro.
+- Un cadáver o encuentro sin recompensa igual puede tener texto: una pista, ambientación o una advertencia.
+- Ponelos del otro lado de los monstruos, como todo lo valioso.
 
 ---
 
@@ -225,6 +241,7 @@ Medí cada área con la **amenaza** de sus monstruos: la suma de `amenaza × can
 - Las piezas se unen **solo por conexiones** (ver 2.8). Las piezas de un área tienen que formar un bloque conectado.
 - Donde se unen piezas de dos áreas distintas tiene que haber una puerta (o un `paso`) con esa `posicion`. Si no, los marines pasarían sin abrir nada.
 - **Toda conexión que no se una con otra pieza se tapa con un `callejon`** (callejón sin salida) en la rotación que corresponda: no puede quedar ninguna abertura libre.
+- **Teleportadores:** unen áreas que quedan lejos entre sí y que no tienen ya un camino corto entre ellas. Un teleportador que lleva al mismo lugar al que ya lleva un pasillo es redundante y no aporta nada. Van como una conexión `teleportador` (sin `posicion`) más una ficha `teleportador-<color>` en cada una de las dos áreas, del mismo color.
 - Pensá el plano en papel antes de escribir el JSON: ubicá primero el área inicial, después las áreas vecinas a través de sus conexiones, y al final los callejones.
 - Los pasillos y las curvas sirven para ajustar distancias: un pasillo corto suma 3 casillas, uno largo 6, y una sala 4×4 o una cruz pasan derecho sumando 4.
 
@@ -273,7 +290,8 @@ Escenario de 6 áreas que usa todas las mecánicas: puertas de los 3 colores, co
 - [ ] Cada arma tiene su munición; no se superan las cantidades de la caja.
 - [ ] Ninguna pieza se superpone con otra; las piezas se unen solo por conexiones; toda conexión libre está tapada con un callejón.
 - [ ] Toda puerta (salvo teleportadores) tiene `posicion` sobre la conexión donde se unen sus dos áreas, y no hay áreas que se toquen por una conexión sin puerta.
-- [ ] Cada monstruo, objeto, ficha de escenografía y marine tiene su casilla dentro de su área, sin encimarse.
+- [ ] Cada monstruo, objeto, ficha de escenografía y marine tiene su casilla dentro de su área, sin encimarse (una ficha por casilla).
+- [ ] Los encuentros y cadáveres tienen `texto`, y lo que dan está en `recompensas`. Los teleportadores unen áreas lejanas.
 - [ ] Todos los textos están escritos y en español.
 
 ## 9. Cómo pedir un mapa

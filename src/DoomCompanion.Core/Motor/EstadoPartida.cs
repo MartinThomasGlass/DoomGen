@@ -13,6 +13,8 @@ public sealed class EstadoPartida
     public HashSet<string> EventosActivos { get; set; } = [];
     /// <summary>Ids de los objetos colocados en areas que ya se recogieron.</summary>
     public HashSet<string> ObjetosRecogidos { get; set; } = [];
+    /// <summary>Encuentros y cadaveres ya revisados (id de ficha en el plano).</summary>
+    public HashSet<string> FichasRevisadas { get; set; } = [];
     /// <summary>Monstruos por area (se crean al revelar el area).</summary>
     public Dictionary<string, List<MonstruoEnJuego>> Monstruos { get; set; } = [];
     /// <summary>Inventario compartido del equipo: id de objeto → cantidad.</summary>
@@ -53,6 +55,7 @@ public enum TipoMensaje
     PuertaAbierta,
     PuertaBloqueada,
     Evento,
+    Encuentro,
     Objetivo,
     Victoria,
     Derrota,

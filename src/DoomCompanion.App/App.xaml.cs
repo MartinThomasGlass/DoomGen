@@ -59,6 +59,7 @@ public sealed class TipoMensajeATexto : IValueConverter
         TipoMensaje.PuertaAbierta => "PUERTA",
         TipoMensaje.PuertaBloqueada => "PUERTA BLOQUEADA",
         TipoMensaje.Evento => "EVENTO",
+        TipoMensaje.Encuentro => "ENCUENTRO",
         TipoMensaje.Objetivo => "OBJETIVO",
         TipoMensaje.Victoria or TipoMensaje.Derrota => "FIN DE LA PARTIDA",
         _ => "",

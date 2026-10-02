@@ -41,6 +41,7 @@ public sealed class PersistenciaTests : IDisposable
         Assert.Equal(motor.Estado.SiguienteIdMonstruo, e.SiguienteIdMonstruo);
         Assert.Equal(motor.Estado.Historial.Count, e.Historial.Count);
         Assert.Equal(EjemploJson, carga.MapaJson);
+        Assert.Equal(motor.Estado.FichasRevisadas, e.FichasRevisadas);
     }
 
     [Fact]
@@ -53,7 +54,7 @@ public sealed class PersistenciaTests : IDisposable
         ArchivoPartida.Guardar(ruta, motor.Mapa, EjemploJson, motor.Estado);
 
         var cargado = ArchivoPartida.Cargar(ruta, CatalogoBase).Motor!;
-        cargado.RecogerObjeto("o3", true);
+        cargado.RevisarFicha("a2", "a2-f0-0"); // cadaver con la llave amarilla
 
         Assert.True(cargado.AbrirPuerta("p2").Exito);
     }

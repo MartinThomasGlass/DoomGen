@@ -70,7 +70,7 @@ public static class ValidadorInventario
         var equipo = new Dictionary<string, int>();
         foreach (var (_, o) in mapa.TodosLosObjetos())
             equipo[o.Tipo] = equipo.GetValueOrDefault(o.Tipo) + o.Cantidad;
-        foreach (var r in mapa.Areas.SelectMany(a => a.Recompensas).Where(r => r.Tipo == TipoRecompensa.OtorgarObjeto && r.Objeto is not null))
+        foreach (var r in mapa.Areas.SelectMany(ValidadorLogico.TodasLasRecompensas).Where(r => r.Tipo == TipoRecompensa.OtorgarObjeto && r.Objeto is not null))
             equipo[r.Objeto!] = equipo.GetValueOrDefault(r.Objeto!) + (r.Cantidad ?? 1);
 
         foreach (var (tipo, usados) in equipo)

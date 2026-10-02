@@ -59,10 +59,10 @@ public static class ValidadorReferencias
                 if (catalogo.BuscarFicha(a.Fichas[j].Tipo) is null)
                     Error($"{ra}.fichas[{j}].tipo", $"La ficha \"{a.Fichas[j].Tipo}\" no está en el catálogo. Válidas: {string.Join(", ", catalogo.Fichas.Select(f => f.Id))}.");
 
-            for (var j = 0; j < a.Recompensas.Count; j++)
+            var recompensas = a.Recompensas.Select((r, j) => (r, Ruta: $"{ra}.recompensas[{j}]"))
+                .Concat(a.Fichas.SelectMany((f, k) => f.Recompensas.Select((r, j) => (r, Ruta: $"{ra}.fichas[{k}].recompensas[{j}]"))));
+            foreach (var (r, rr) in recompensas)
             {
-                var r = a.Recompensas[j];
-                var rr = $"{ra}.recompensas[{j}]";
                 if (r.Objeto is { } o && !ObjetoExiste(o))
                     Error($"{rr}.objeto", $"El objeto \"{o}\" no está en el catálogo ni en objetosMision.");
                 if (r.Puerta is { } pu && !puertas.Contains(pu))

@@ -35,7 +35,7 @@ public class DistribucionFichasTests
         foreach (var a in mapa.Areas)
         {
             foreach (var g in a.Monstruos) g.Posiciones = null;
-            foreach (var o in a.Objetos) (o.X, o.Y) = (null, null);
+            foreach (var o in a.Objetos) o.Posiciones = null;
             foreach (var f in a.Fichas) f.Posiciones = null;
         }
         mapa.Escenario.InicioMarines = null;
@@ -76,17 +76,46 @@ public class DistribucionFichasTests
     }
 
     [Fact]
-    public void MonstruosMuertosYObjetosRecogidosNoAparecen()
+    public void ElPlanoEsDePreparacionYNoCambiaAlJugar()
     {
         var motor = NuevoMotorEjemplo();
         var zombie = motor.MonstruosDe("a1").First(m => m.Tipo == "zombie");
         motor.MarcarMonstruo("a1", zombie.Id, true);
         motor.RecogerObjeto("o1", true);
+        motor.AgregarMonstruo("a1", "imp");
 
         var fichas = DistribucionFichas.Calcular(motor.Mapa, motor.Catalogo, motor.Estado, motor.Mapa.BuscarArea("a1")!);
 
-        Assert.DoesNotContain(fichas, f => f.Id == zombie.Id);
-        Assert.DoesNotContain(fichas, f => f.Id == "o1");
+        Assert.Contains(fichas, f => f.Id == zombie.Id);
+        Assert.Contains(fichas, f => f.Id == "o1");
+        Assert.DoesNotContain(fichas, f => f.Tipo == "imp"); // las apariciones se ubican en la mesa
+    }
+
+    [Fact]
+    public void UnaFichaPorCasilla()
+    {
+        var motor = NuevoMotorEjemplo();
+
+        var fichas = DistribucionFichas.Calcular(motor.Mapa, motor.Catalogo, motor.Estado, motor.Mapa.BuscarArea("a1")!);
+        var balas = fichas.Where(f => f.Tipo == "municion-balas").ToList();
+
+        Assert.Equal(2, balas.Count); // 2 fichas de balas = 2 casillas
+        Assert.Equal([new Celda(11, 13), new Celda(12, 13)], balas.Select(f => new Celda(f.X, f.Y)));
+        var celdas = fichas.SelectMany(f => f.Celdas()).ToList();
+        Assert.Equal(celdas.Count, celdas.Distinct().Count());
+    }
+
+    [Fact]
+    public void EncuentrosYCadaveresSonInteractivosYQuedanRevisados()
+    {
+        var motor = NuevoMotorEjemplo();
+        motor.AbrirPuerta("p1");
+        motor.RevisarFicha("a2", "a2-f0-0");
+
+        var fichas = DistribucionFichas.Calcular(motor.Mapa, motor.Catalogo, motor.Estado, motor.Mapa.BuscarArea("a2")!);
+
+        Assert.Contains(fichas, f => f is { Tipo: "cadaver", Interactiva: true, Revisada: true, Ancho: 2, Alto: 1 });
+        Assert.Contains(fichas, f => f is { Tipo: "residuos", Interactiva: false });
     }
 
     [Fact]
@@ -162,8 +191,7 @@ public class ValidacionPosicionesTests
     public void FichasEncimadas()
     {
         var mapa = Ejemplo;
-        mapa.Areas[0].Objetos[0].X = 17;
-        mapa.Areas[0].Objetos[0].Y = 10; // donde esta un zombie
+        mapa.Areas[0].Objetos[0].Posiciones![0] = new PosicionFicha { X = 17, Y = 10 }; // donde esta un zombie
 
         Assert.Contains(Avisos(mapa), p => p.Mensaje.Contains("se encima con Zombie"));
     }

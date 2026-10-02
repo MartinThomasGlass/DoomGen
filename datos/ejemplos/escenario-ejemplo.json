@@ -39,7 +39,7 @@
     {
       "id": "disco-datos",
       "nombre": "Disco de datos del jefe de turno",
-      "descripcion": "Necesario para la evacuación.",
+      "descripcion": "Necesario para la evacuación. Está en la consola de la sala de control (encuentro).",
       "ficha": "encuentro"
     }
   ],
@@ -73,16 +73,14 @@
           "tipo": "municion-balas",
           "cantidad": 2,
           "texto": "Dos cajas de cartuchos junto a la rampa.",
-          "x": 11,
-          "y": 13
+          "posiciones": [{ "x": 11, "y": 13 }, { "x": 12, "y": 13 }]
         },
         {
           "id": "o2",
           "tipo": "salud-botiquin",
           "cantidad": 1,
           "texto": "Un botiquín sellado sobre una caja.",
-          "x": 19,
-          "y": 9
+          "posiciones": [{ "x": 19, "y": 9 }]
         }
       ],
       "fichas": [
@@ -91,12 +89,6 @@
           "cantidad": 1,
           "nota": "Contenedores en el centro de la sala.",
           "posiciones": [{ "x": 14, "y": 11, "rotacion": 90 }]
-        },
-        {
-          "tipo": "teleportador-rojo",
-          "cantidad": 1,
-          "nota": "En la esquina noroeste; está apagado.",
-          "posiciones": [{ "x": 10, "y": 9 }]
         }
       ],
       "recompensas": [
@@ -123,7 +115,7 @@
       ],
       "textos": {
         "entrar": "Un pasillo angosto lleno de tuberías que silban. El vapor no deja ver más allá de unos metros, pero se oyen garras sobre el metal.",
-        "despejar": "Entre los restos de un técnico hay una tarjeta amarilla todavía enganchada al cinturón. Más adelante, el pasillo baja hacia la sala de bombas."
+        "despejar": "Entre los restos queda el cuerpo de un técnico: vale la pena revisarlo. Más adelante, el pasillo baja hacia la sala de bombas."
       },
       "monstruos": [
         {
@@ -139,23 +131,28 @@
       ],
       "objetos": [
         {
-          "id": "o3",
-          "tipo": "llave-amarilla",
-          "cantidad": 1,
-          "texto": "La tarjeta amarilla del técnico.",
-          "x": 26,
-          "y": 10
-        },
-        {
           "id": "o4",
           "tipo": "municion-cohetes",
           "cantidad": 2,
           "texto": "Una caja de granadas de mantenimiento.",
-          "x": 21,
-          "y": 10
+          "posiciones": [{ "x": 21, "y": 10 }, { "x": 21, "y": 11 }]
         }
       ],
       "fichas": [
+        {
+          "tipo": "cadaver",
+          "cantidad": 1,
+          "posiciones": [{ "x": 22, "y": 10, "rotacion": 90 }],
+          "texto": "El cuerpo de un técnico de mantenimiento, partido en dos. Todavía tiene enganchada al cinturón una tarjeta amarilla.",
+          "recompensas": [
+            {
+              "tipo": "otorgarObjeto",
+              "objeto": "llave-amarilla",
+              "cantidad": 1,
+              "texto": "Obtienen la tarjeta amarilla del técnico."
+            }
+          ]
+        },
         {
           "tipo": "residuos",
           "cantidad": 1,
@@ -201,32 +198,45 @@
       ],
       "objetos": [
         {
-          "id": "o5",
-          "tipo": "disco-datos",
-          "cantidad": 1,
-          "texto": "El disco de datos del jefe de turno, en la consola.",
-          "x": 6,
-          "y": 7
-        },
-        {
           "id": "o6",
           "tipo": "municion-celdas",
           "cantidad": 1,
           "texto": "Una celda de energía de repuesto.",
-          "x": 8,
-          "y": 13
+          "posiciones": [{ "x": 8, "y": 13 }]
         }
       ],
       "recompensas": [
         {
           "tipo": "activarEvento",
           "evento": "ev-energia",
-          "texto": "La energía auxiliar vuelve: la compuerta de energía de la sala de bombas ya puede abrirse."
+          "texto": "La energía auxiliar vuelve: se encienden el teleportador de la sala y la compuerta de energía de la sala de bombas."
         },
         {
           "tipo": "desbloquearPuerta",
           "puerta": "p4",
           "texto": "Desde la consola liberan a distancia la cerradura de la compuerta azul del este."
+        }
+      ],
+      "fichas": [
+        {
+          "tipo": "encuentro",
+          "cantidad": 1,
+          "posiciones": [{ "x": 6, "y": 7 }],
+          "texto": "La consola principal todavía tiene el disco de datos del jefe de turno insertado. Lo sacan con cuidado: es lo que vinieron a buscar.",
+          "recompensas": [
+            {
+              "tipo": "otorgarObjeto",
+              "objeto": "disco-datos",
+              "cantidad": 1,
+              "texto": "Obtienen el disco de datos."
+            }
+          ]
+        },
+        {
+          "tipo": "teleportador-rojo",
+          "cantidad": 1,
+          "nota": "Apagado hasta que vuelva la energía.",
+          "posiciones": [{ "x": 4, "y": 9 }]
         }
       ]
     },
@@ -260,31 +270,28 @@
           "tipo": "llave-azul",
           "cantidad": 1,
           "texto": "Una tarjeta azul junto al casillero.",
-          "x": 29,
-          "y": 8
+          "posiciones": [{ "x": 29, "y": 8 }]
         },
         {
           "id": "o8",
           "tipo": "arma-lanzacohetes",
           "cantidad": 1,
           "texto": "Un lanzacohetes en el casillero reventado.",
-          "x": 26,
-          "y": 8
+          "posiciones": [{ "x": 26, "y": 8 }]
         },
         {
           "id": "o9",
           "tipo": "municion-cohetes",
           "cantidad": 1,
           "texto": "Una caja de cohetes.",
-          "x": 27,
-          "y": 8
+          "posiciones": [{ "x": 27, "y": 8 }]
         }
       ],
       "fichas": [
         {
           "tipo": "teleportador-rojo",
           "cantidad": 1,
-          "nota": "Par del teleportador del hangar.",
+          "nota": "Par del teleportador de la sala de control.",
           "posiciones": [{ "x": 28, "y": 5 }]
         },
         {
@@ -347,16 +354,14 @@
           "tipo": "municion-balas",
           "cantidad": 2,
           "texto": "Cargadores tirados junto a un guardia muerto.",
-          "x": 2,
-          "y": 3
+          "posiciones": [{ "x": 2, "y": 3 }, { "x": 3, "y": 3 }]
         },
         {
           "id": "o11",
           "tipo": "adrenalina",
           "cantidad": 1,
           "texto": "Una jeringa de adrenalina en un botiquín de pared.",
-          "x": 7,
-          "y": 4
+          "posiciones": [{ "x": 7, "y": 4 }]
         }
       ],
       "recompensas": [
@@ -392,8 +397,7 @@
           "tipo": "municion-celdas",
           "cantidad": 1,
           "texto": "Una celda de energía junto a la rampa.",
-          "x": 32,
-          "y": 4
+          "posiciones": [{ "x": 32, "y": 4 }]
         }
       ],
       "recompensas": [
@@ -495,15 +499,22 @@
     },
     {
       "id": "p7",
-      "desde": "a1",
+      "desde": "a3",
       "hacia": "a4",
       "tipo": "teleportador",
       "requisitos": {
-        "puertaAbierta": "p3"
+        "alguna": [
+          {
+            "evento": "ev-energia"
+          },
+          {
+            "puertaAbierta": "p5"
+          }
+        ]
       },
       "textos": {
-        "abrir": "El teleportador se enciende con un zumbido verde. Ahora conecta el hangar con la sala de bombas.",
-        "bloqueada": "El teleportador está apagado. Su otro extremo debe estar en una zona que todavía no alcanzaron."
+        "abrir": "El teleportador se enciende con un zumbido: ahora une la sala de control con la sala de bombas.",
+        "bloqueada": "El teleportador está apagado. Sin energía auxiliar no va a funcionar."
       }
     }
   ]

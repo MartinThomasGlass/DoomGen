@@ -1,4 +1,4 @@
-# Doom Companion
+﻿# Doom Companion
 
 Aplicación de escritorio para Windows que acompaña partidas de **Doom: The Boardgame** (Fantasy Flight Games, 2004) jugadas en mesa con las piezas físicas.
 
@@ -105,13 +105,14 @@ La interfaz está pensada para un monitor o una TV horizontal:
    - por evento (violeta);
    - paso abierto (marrón, punteado);
    - teleportador (círculo celeste).
-4. **El plano muestra la escena como DoomGen:** cada monstruo con el color de su figura, los marines en su posición de inicio, los objetos y la escenografía, cada uno en su casilla. El panel **Colocar en la mesa** dice lo mismo en texto: pieza, posición y rotación, y la casilla de cada ficha.
+4. **El plano muestra la escena como DoomGen:** cada monstruo con el color de su figura, los marines en su posición de inicio, los objetos y la escenografía, una ficha por casilla. Es un plano de preparación: lo que pasa después se juega en la mesa, y el plano no cambia al matar monstruos ni al levantar objetos. El panel **Colocar en la mesa** dice lo mismo en texto.
+   - En el plano se tocan solo las puertas, los teleportadores y los **encuentros (?) y cadáveres**. Al revisar uno se lee su texto y, la primera vez, se obtiene lo que tenga (por ejemplo una llave). Los que faltan revisar brillan; los revisados quedan atenuados.
 5. **Clic en una puerta** (en el mapa o en el botón *Abrir* del panel):
    - si se cumplen sus requisitos, se abre y se revela el área del otro lado con su texto;
    - si no, aparece la pista de puerta bloqueada y no se revela nada.
-6. **Monstruos:** marcá los que mueren en el panel o **haciendo clic en su ficha del plano**. Con **+ Agregar aparición** se suman monstruos que trae el invasor (los agregados se pueden quitar con ✕). En **Colores de los marines** elegís qué colores juegan: la app reparte entre esos colores el color de cada monstruo, y te dice qué figura poner.
+6. **Monstruos:** marcá en el panel los que mueren (sirve para despejar el área). Con **+ Agregar aparición** se suman monstruos que trae el invasor (los agregados se pueden quitar con ✕). En **Colores de los marines** elegís qué colores juegan: la app reparte entre esos colores el color de cada monstruo, y te dice qué figura poner.
 7. Cuando no quedan monstruos vivos, el área queda **despejada**: se lee su texto y se otorgan sus **recompensas** (objetos al inventario, puertas desbloqueadas, eventos, información).
-8. **Objetos:** se marcan como recogidos (en el panel o con un clic en su ficha del plano) y pasan al inventario compartido. El inventario también se ajusta a mano con − / +, por ejemplo para descontar munición.
+8. **Objetos:** si querés llevar el inventario en la app, se marcan como recogidos en el panel. Lo importante para las puertas son las llaves, que suelen venir de encuentros, cadáveres o recompensas. El inventario también se ajusta a mano con − / +, por ejemplo para descontar munición.
 9. **Eventos manuales:** se marcan en el panel *Eventos* cuando pasan en la mesa. Pueden abrir puertas o dar la victoria.
 10. **Victoria / Derrota:** botones en la barra superior. Si la condición de victoria es despejar un área o activar un evento, la victoria se declara sola.
 
@@ -156,8 +157,8 @@ mapa (version: 1)
 ├─ objetosMision[]:  id, nombre, descripcion, ficha
 ├─ areas[]:   id, nombre, tiles[] { tipo, x, y, rotacion },
 │             textos { entrar, despejar },
-│             monstruos[] { tipo, cantidad, posiciones[] }, objetos[] { id, tipo, cantidad, x, y },
-│             fichas[] { tipo, cantidad, posiciones[] }, recompensas[], notasInvasor
+│             monstruos[] { tipo, cantidad, posiciones[] }, objetos[] { id, tipo, cantidad, posiciones[] },
+│             fichas[] { tipo, cantidad, posiciones[], texto, recompensas[] }, recompensas[], notasInvasor
 └─ puertas[]: id, desde, hacia, tipo, textos { abrir, bloqueada }, requisitos, posicion
 ```
 
@@ -165,7 +166,7 @@ mapa (version: 1)
 - **Requisitos:** un árbol con `todas` / `alguna`, cuyas hojas pueden ser `areaDespejada`, `objeto` (+`cantidad`), `puertaAbierta` y `evento`. No existe la negación: así nunca se cierra un camino y la validación de softlocks es exacta.
 - **Recompensas:** `texto`, `otorgarObjeto`, `desbloquearPuerta` (sirve para puertas de cualquier área), `activarEvento`, `revelarInfo` (si trae `area`, su nombre aparece en el mapa como "conocida").
 - **Condición de victoria:** `llegarAArea`, `despejarArea` o `evento`.
-- **Fichas:** cada monstruo, objeto, ficha de escenografía y marine lleva su casilla (`x`, `y`; el demon y las fichas alargadas aceptan `"rotacion": 90`). Las que no la traen, la app las ubica sola.
+- **Fichas:** cada monstruo, objeto, ficha de escenografía y marine lleva su casilla en `posiciones` (el demon y las fichas alargadas aceptan `"rotacion": 90`). Una ficha por casilla. Las que no la traen, la app las ubica sola. Los encuentros y cadáveres llevan `texto` y `recompensas`.
 - **Plano:** cada pieza va en `(x, y)` (esquina superior izquierda de la pieza ya rotada) con `rotacion` 0/90/180/270 en sentido horario. Las piezas se unen solo por sus **conexiones** (aberturas de 2 casillas). La `posicion` de una puerta es la línea de conexión donde se unen una pieza de cada área: `horizontal` = línea `y`, de `x` a `x+2`; `vertical` = línea `x`, de `y` a `y+2`.
 
 ---
