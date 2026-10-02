@@ -37,13 +37,14 @@ public static class GeneradorGuiaIA
         sb.AppendLine().AppendLine("La amenaza es un peso orientativo para balancear, no un valor oficial.");
 
         sb.AppendLine().AppendLine("### Objetos (equipo)").AppendLine()
-          .AppendLine("| id | Nombre | Categoría | Cantidad | Munición | Nota |").AppendLine("|---|---|---|---|---|---|");
+          .AppendLine("| id | Nombre | Categoría | Cantidad | Valor | Munición | Nota |").AppendLine("|---|---|---|---|---|---|---|");
         foreach (var o in c.Objetos)
         {
             var municion = o.Categoria == CategoriaObjeto.Arma ? (o.Municion is { } m ? $"`{m}`" : "no usa") : "";
             var cant = Cant(o.Cantidad) + (o.Estimado ? " (estimada)" : "");
-            sb.AppendLine($"| `{o.Id}` | {o.Nombre} | {o.Categoria.ToString().ToLowerInvariant()} | {cant} | {municion} | {Nota(o.Nota, false)} |");
+            sb.AppendLine($"| `{o.Id}` | {o.Nombre} | {o.Categoria.ToString().ToLowerInvariant()} | {cant} | {o.Valor} | {municion} | {Nota(o.Nota, false)} |");
         }
+        sb.AppendLine().AppendLine("El valor es orientativo: mide qué tanto le conviene a los marines conseguir cada cosa (ver 4.3).");
         if (c.GruposEquipo.Count > 0)
         {
             sb.AppendLine().AppendLine("Totales de fichas de equipo según el manual: " +
@@ -52,9 +53,9 @@ public static class GeneradorGuiaIA
         if (!string.IsNullOrWhiteSpace(c.ArmasBasicas)) sb.AppendLine().AppendLine(c.ArmasBasicas);
 
         sb.AppendLine().AppendLine("### Fichas de escenografía").AppendLine()
-          .AppendLine("| id | Nombre | Cantidad | Nota |").AppendLine("|---|---|---|---|");
+          .AppendLine("| id | Nombre | Casillas (rotación 0) | Cantidad | Nota |").AppendLine("|---|---|---|---|---|");
         foreach (var f in c.Fichas)
-            sb.AppendLine($"| `{f.Id}` | {f.Nombre} | {Cant(f.Cantidad)} | {Nota(f.Nota, f.AVerificar)} |");
+            sb.AppendLine($"| `{f.Id}` | {f.Nombre} | {f.Ancho}×{f.Alto} | {Cant(f.Cantidad)} | {Nota(f.Nota, f.AVerificar)} |");
 
         return sb.ToString().TrimEnd();
     }

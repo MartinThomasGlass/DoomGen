@@ -53,6 +53,35 @@ public sealed class ServicioDatos
         }
     }
 
+    // ------------------------------------------------------------------ Configuracion
+
+    private static string RutaConfiguracion => Path.Combine(Carpeta, "configuracion.json");
+
+    public sealed class Configuracion
+    {
+        public string? CarpetaImagenes { get; set; }
+    }
+
+    public static Configuracion LeerConfiguracion()
+    {
+        try
+        {
+            return File.Exists(RutaConfiguracion)
+                ? DoomCompanion.Core.Json.Leer<Configuracion>(File.ReadAllText(RutaConfiguracion))
+                : new Configuracion();
+        }
+        catch (Exception ex) when (ex is JsonException or IOException)
+        {
+            return new Configuracion();
+        }
+    }
+
+    public static void GuardarConfiguracion(Configuracion configuracion)
+    {
+        Directory.CreateDirectory(Carpeta);
+        File.WriteAllText(RutaConfiguracion, DoomCompanion.Core.Json.Escribir(configuracion));
+    }
+
     public static void AbrirCarpeta(string ruta)
     {
         Directory.CreateDirectory(ruta);

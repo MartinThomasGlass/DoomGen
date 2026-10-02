@@ -56,10 +56,26 @@ public static class ValidadorLogico
         }
 
         // 5. Advertencias de diseño.
+        // Que valga la pena entrar a cada area: un callejon sin salida lleno de monstruos tiene
+        // que tener algo que convenga (llave, arma buena, objeto de mision...).
         for (var i = 0; i < mapa.Areas.Count; i++)
-            if (mapa.Areas[i].Recompensas.Count == 0)
-                Aviso($"areas[{i}] ({mapa.Areas[i].Id}).recompensas",
-                    $"El área {nombres.Area(mapa.Areas[i].Id)} no da ninguna recompensa al despejarla.");
+        {
+            var area = mapa.Areas[i];
+            if (area.Id == mapa.Escenario.AreaInicial || area.Id == cv.Area) continue;
+
+            var amenaza = Amenaza(area, catalogo);
+            var valor = Valor(area, mapa, catalogo);
+            var sinSalida = mapa.PuertasDe(area.Id).Count() <= 1;
+            var ruta = $"areas[{i}] ({area.Id})";
+
+            if (sinSalida && amenaza >= 4 && valor * 2 < amenaza)
+                Aviso(ruta, $"El área {nombres.Area(area.Id)} no tiene otra salida, tiene mucha amenaza ({amenaza}) y poco para ganar (valor {valor}): " +
+                            "no conviene entrar. Poné del otro lado de los monstruos una llave, un arma buena o algo valioso, o una salida.");
+            else if (sinSalida && amenaza == 0 && valor == 0)
+                Aviso(ruta, $"El área {nombres.Area(area.Id)} no tiene salida, ni monstruos, ni nada para agarrar.");
+            else if (amenaza >= 8 && valor < 3)
+                Aviso(ruta, $"El área {nombres.Area(area.Id)} tiene mucha amenaza ({amenaza}) y casi nada para agarrar (valor {valor}).");
+        }
 
         foreach (var puerta in mapa.Puertas.Where(x => x.Tipo == TipoPuerta.Evento))
             if (puerta.Requisitos?.Recorrer().OfType<RequisitoEvento>().Any() != true)
@@ -86,6 +102,31 @@ public static class ValidadorLogico
         }
 
         return p;
+    }
+
+    /// <summary>Suma de amenaza × cantidad de los monstruos del area.</summary>
+    public static int Amenaza(Area area, Catalogo catalogo) =>
+        area.Monstruos.Sum(m => (catalogo.BuscarMonstruo(m.Tipo)?.Amenaza ?? 1) * m.Cantidad);
+
+    /// <summary>
+    /// Lo que ganan los marines en el area: objetos que hay (los de mision valen mucho) y
+    /// recompensas por despejarla.
+    /// </summary>
+    public static int Valor(Area area, Mapa mapa, Catalogo catalogo)
+    {
+        const int valorMision = 6;
+        int ValorObjeto(string id) =>
+            catalogo.BuscarObjeto(id)?.Valor ?? (mapa.ObjetosMision.Any(o => o.Id == id) ? valorMision : 1);
+
+        var objetos = area.Objetos.Sum(o => ValorObjeto(o.Tipo) * o.Cantidad);
+        var recompensas = area.Recompensas.Sum(r => r.Tipo switch
+        {
+            TipoRecompensa.OtorgarObjeto when r.Objeto is not null => ValorObjeto(r.Objeto) * (r.Cantidad ?? 1),
+            TipoRecompensa.DesbloquearPuerta or TipoRecompensa.ActivarEvento => 4,
+            TipoRecompensa.RevelarInfo => 1,
+            _ => 0,
+        });
+        return objetos + recompensas;
     }
 
     private static List<string> ExplicarBloqueo(Puerta puerta, Mapa mapa, Simulacion sim, Nombres nombres)

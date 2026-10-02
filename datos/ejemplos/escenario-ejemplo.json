@@ -18,7 +18,8 @@
     "condicionVictoria": {
       "tipo": "llegarAArea",
       "area": "a6"
-    }
+    },
+    "inicioMarines": [{ "x": 12, "y": 10 }, { "x": 12, "y": 11 }, { "x": 12, "y": 12 }]
   },
   "eventos": [
     {
@@ -47,7 +48,7 @@
       "id": "a1",
       "nombre": "Hangar de desembarco",
       "tiles": [
-        { "tipo": "sala-10x5-sur", "x": 10, "y": 9, "rotacion": 0 },
+        { "tipo": "sala-10x5-tres", "x": 10, "y": 9, "rotacion": 180 },
         { "tipo": "callejon", "x": 14, "y": 14, "rotacion": 90 }
       ],
       "textos": {
@@ -55,33 +56,47 @@
         "despejar": "El hangar queda en silencio. En el casillero del guardia hay un papel con un código garabateado y, en la pared, un plano de la estación."
       },
       "monstruos": [
-        { "tipo": "zombie", "cantidad": 2 },
-        { "tipo": "trite", "cantidad": 1 }
+        {
+          "tipo": "zombie",
+          "cantidad": 2,
+          "posiciones": [{ "x": 17, "y": 10 }, { "x": 18, "y": 12 }]
+        },
+        {
+          "tipo": "trite",
+          "cantidad": 1,
+          "posiciones": [{ "x": 16, "y": 13 }]
+        }
       ],
       "objetos": [
         {
           "id": "o1",
           "tipo": "municion-balas",
           "cantidad": 2,
-          "texto": "Dos cajas de cartuchos junto a la rampa."
+          "texto": "Dos cajas de cartuchos junto a la rampa.",
+          "x": 11,
+          "y": 13
         },
         {
           "id": "o2",
           "tipo": "salud-botiquin",
           "cantidad": 1,
-          "texto": "Un botiquín sellado sobre una caja."
+          "texto": "Un botiquín sellado sobre una caja.",
+          "x": 19,
+          "y": 9
         }
       ],
       "fichas": [
         {
-          "tipo": "obstaculo",
-          "cantidad": 2,
-          "nota": "Contenedores en el centro de la sala."
+          "tipo": "obstaculo-1x2",
+          "cantidad": 1,
+          "nota": "Contenedores en el centro de la sala.",
+          "posiciones": [{ "x": 14, "y": 11, "rotacion": 90 }]
         },
         {
-          "tipo": "teleportador",
+          "tipo": "teleportador-rojo",
           "cantidad": 1,
-          "nota": "En la esquina noroeste; está apagado."
+          "nota": "En la esquina noroeste; está apagado.",
+          "posiciones": [{ "x": 10, "y": 9 }]
         }
       ],
       "recompensas": [
@@ -103,36 +118,49 @@
       "id": "a2",
       "nombre": "Pasillo de mantenimiento",
       "tiles": [
-        { "tipo": "pasillo-largo", "x": 20, "y": 10, "rotacion": 90 },
-        { "tipo": "curva-chica", "x": 26, "y": 9, "rotacion": 270 }
+        { "tipo": "pasillo-largo", "x": 20, "y": 10, "rotacion": 0 },
+        { "tipo": "curva-chica", "x": 26, "y": 9, "rotacion": 0 }
       ],
       "textos": {
         "entrar": "Un pasillo angosto lleno de tuberías que silban. El vapor no deja ver más allá de unos metros, pero se oyen garras sobre el metal.",
         "despejar": "Entre los restos de un técnico hay una tarjeta amarilla todavía enganchada al cinturón. Más adelante, el pasillo baja hacia la sala de bombas."
       },
       "monstruos": [
-        { "tipo": "imp", "cantidad": 2 },
-        { "tipo": "trite", "cantidad": 1 }
+        {
+          "tipo": "imp",
+          "cantidad": 2,
+          "posiciones": [{ "x": 24, "y": 10 }, { "x": 27, "y": 11 }]
+        },
+        {
+          "tipo": "trite",
+          "cantidad": 1,
+          "posiciones": [{ "x": 22, "y": 11 }]
+        }
       ],
       "objetos": [
         {
           "id": "o3",
           "tipo": "llave-amarilla",
           "cantidad": 1,
-          "texto": "La tarjeta amarilla del técnico."
+          "texto": "La tarjeta amarilla del técnico.",
+          "x": 26,
+          "y": 10
         },
         {
           "id": "o4",
           "tipo": "municion-cohetes",
           "cantidad": 2,
-          "texto": "Una caja de granadas de mantenimiento."
+          "texto": "Una caja de granadas de mantenimiento.",
+          "x": 21,
+          "y": 10
         }
       ],
       "fichas": [
         {
-          "tipo": "obstaculo-danino",
+          "tipo": "residuos",
           "cantidad": 1,
-          "nota": "Fuga de vapor en la curva."
+          "nota": "Charco de residuos en la curva.",
+          "posiciones": [{ "x": 28, "y": 10 }]
         }
       ],
       "recompensas": [
@@ -160,28 +188,33 @@
         "despejar": "La consola principal todavía responde. Con un par de comandos, el zumbido de los generadores auxiliares vuelve a llenar la estación."
       },
       "monstruos": [
-        { "tipo": "archvile", "cantidad": 1 },
-        { "tipo": "zombie", "cantidad": 2 }
+        {
+          "tipo": "archvile",
+          "cantidad": 1,
+          "posiciones": [{ "x": 6, "y": 12 }]
+        },
+        {
+          "tipo": "zombie",
+          "cantidad": 2,
+          "posiciones": [{ "x": 8, "y": 11 }, { "x": 5, "y": 9 }]
+        }
       ],
       "objetos": [
         {
           "id": "o5",
           "tipo": "disco-datos",
           "cantidad": 1,
-          "texto": "El disco de datos del jefe de turno, en la consola."
+          "texto": "El disco de datos del jefe de turno, en la consola.",
+          "x": 6,
+          "y": 7
         },
         {
           "id": "o6",
           "tipo": "municion-celdas",
           "cantidad": 1,
-          "texto": "Una celda de energía de repuesto."
-        }
-      ],
-      "fichas": [
-        {
-          "tipo": "encuentro",
-          "cantidad": 1,
-          "nota": "Representa el disco de datos sobre la consola."
+          "texto": "Una celda de energía de repuesto.",
+          "x": 8,
+          "y": 13
         }
       ],
       "recompensas": [
@@ -210,39 +243,55 @@
         "despejar": "Las bombas siguen latiendo, pero ya nada se mueve entre ellas. Al fondo hay un casillero de armas reventado y una tarjeta azul en el piso."
       },
       "monstruos": [
-        { "tipo": "demon", "cantidad": 1 },
-        { "tipo": "imp", "cantidad": 2 }
+        {
+          "tipo": "demon",
+          "cantidad": 1,
+          "posiciones": [{ "x": 27, "y": 7, "rotacion": 0 }]
+        },
+        {
+          "tipo": "imp",
+          "cantidad": 2,
+          "posiciones": [{ "x": 26, "y": 5 }, { "x": 29, "y": 6 }]
+        }
       ],
       "objetos": [
         {
           "id": "o7",
           "tipo": "llave-azul",
           "cantidad": 1,
-          "texto": "Una tarjeta azul junto al casillero."
+          "texto": "Una tarjeta azul junto al casillero.",
+          "x": 29,
+          "y": 8
         },
         {
           "id": "o8",
           "tipo": "arma-lanzacohetes",
           "cantidad": 1,
-          "texto": "Un lanzacohetes en el casillero reventado."
+          "texto": "Un lanzacohetes en el casillero reventado.",
+          "x": 26,
+          "y": 8
         },
         {
           "id": "o9",
           "tipo": "municion-cohetes",
           "cantidad": 1,
-          "texto": "Una caja de cohetes."
+          "texto": "Una caja de cohetes.",
+          "x": 27,
+          "y": 8
         }
       ],
       "fichas": [
         {
-          "tipo": "teleportador",
+          "tipo": "teleportador-rojo",
           "cantidad": 1,
-          "nota": "Par del teleportador del hangar."
+          "nota": "Par del teleportador del hangar.",
+          "posiciones": [{ "x": 28, "y": 5 }]
         },
         {
-          "tipo": "obstaculo",
+          "tipo": "obstaculo-1x1",
           "cantidad": 2,
-          "nota": "Bombas de refrigeración."
+          "nota": "Bombas de refrigeración.",
+          "posiciones": [{ "x": 26, "y": 6 }, { "x": 29, "y": 7 }]
         }
       ],
       "recompensas": [
@@ -262,10 +311,10 @@
       "id": "a5",
       "nombre": "Núcleo del reactor",
       "tiles": [
-        { "tipo": "sala-9x5", "x": 1, "y": 1, "rotacion": 180 },
-        { "tipo": "pasillo-largo", "x": 10, "y": 2, "rotacion": 90 },
+        { "tipo": "sala-9x5", "x": 1, "y": 1, "rotacion": 0 },
+        { "tipo": "pasillo-largo", "x": 10, "y": 2, "rotacion": 0 },
         { "tipo": "interseccion-cruz", "x": 16, "y": 1, "rotacion": 0 },
-        { "tipo": "pasillo-largo", "x": 20, "y": 2, "rotacion": 90 },
+        { "tipo": "pasillo-largo", "x": 20, "y": 2, "rotacion": 0 },
         { "tipo": "interseccion-t", "x": 26, "y": 2, "rotacion": 0 },
         { "tipo": "callejon", "x": 0, "y": 2, "rotacion": 180 },
         { "tipo": "callejon", "x": 17, "y": 0, "rotacion": 270 },
@@ -276,22 +325,38 @@
         "despejar": "El Mancubus cae sobre la baranda. Colgada de su cuerpo hay una tarjeta roja: la tarjeta de la plataforma de evacuación."
       },
       "monstruos": [
-        { "tipo": "mancubus", "cantidad": 1 },
-        { "tipo": "imp", "cantidad": 2 },
-        { "tipo": "zombie", "cantidad": 1 }
+        {
+          "tipo": "mancubus",
+          "cantidad": 1,
+          "posiciones": [{ "x": 4, "y": 2 }]
+        },
+        {
+          "tipo": "imp",
+          "cantidad": 2,
+          "posiciones": [{ "x": 12, "y": 2 }, { "x": 22, "y": 3 }]
+        },
+        {
+          "tipo": "zombie",
+          "cantidad": 1,
+          "posiciones": [{ "x": 8, "y": 1 }]
+        }
       ],
       "objetos": [
         {
           "id": "o10",
           "tipo": "municion-balas",
           "cantidad": 2,
-          "texto": "Cargadores tirados junto a un guardia muerto."
+          "texto": "Cargadores tirados junto a un guardia muerto.",
+          "x": 2,
+          "y": 3
         },
         {
           "id": "o11",
           "tipo": "adrenalina",
           "cantidad": 1,
-          "texto": "Una jeringa de adrenalina en un botiquín de pared."
+          "texto": "Una jeringa de adrenalina en un botiquín de pared.",
+          "x": 7,
+          "y": 4
         }
       ],
       "recompensas": [
@@ -307,7 +372,7 @@
       "id": "a6",
       "nombre": "Plataforma de evacuación",
       "tiles": [
-        { "tipo": "sala-10x5", "x": 30, "y": 0, "rotacion": 0 },
+        { "tipo": "sala-10x5-dos", "x": 30, "y": 0, "rotacion": 0 },
         { "tipo": "callejon", "x": 40, "y": 2, "rotacion": 0 }
       ],
       "textos": {
@@ -315,14 +380,20 @@
         "despejar": "El Cyberdemon se desploma y hace temblar la plataforma. El camino a la nave está libre."
       },
       "monstruos": [
-        { "tipo": "cyberdemon", "cantidad": 1 }
+        {
+          "tipo": "cyberdemon",
+          "cantidad": 1,
+          "posiciones": [{ "x": 36, "y": 1 }]
+        }
       ],
       "objetos": [
         {
           "id": "o12",
           "tipo": "municion-celdas",
           "cantidad": 1,
-          "texto": "Una celda de energía junto a la rampa."
+          "texto": "Una celda de energía junto a la rampa.",
+          "x": 32,
+          "y": 4
         }
       ],
       "recompensas": [

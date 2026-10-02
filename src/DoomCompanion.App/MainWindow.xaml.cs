@@ -23,6 +23,8 @@ public partial class MainWindow : Window, IDialogos
         DataContext = _vm;
         Mapa.AreaClick += id => _vm.SeleccionarAreaCommand.Execute(id);
         Mapa.PuertaClick += id => _vm.AbrirPuertaCommand.Execute(id);
+        Mapa.MonstruoClick += (area, id) => _vm.AlternarMonstruoDelMapa(area, id);
+        Mapa.ObjetoClick += id => _vm.AlternarObjetoDelMapa(id);
         PreviewKeyDown += AlPresionarTecla;
     }
 
@@ -104,6 +106,12 @@ public partial class MainWindow : Window, IDialogos
     {
         var dlg = new SaveFileDialog { Title = titulo, Filter = filtro, FileName = nombreSugerido, OverwritePrompt = true };
         return dlg.ShowDialog(this) == true ? dlg.FileName : null;
+    }
+
+    public string? ElegirCarpeta(string titulo)
+    {
+        var dlg = new OpenFolderDialog { Title = titulo };
+        return dlg.ShowDialog(this) == true ? dlg.FolderName : null;
     }
 
     public bool Confirmar(string titulo, string mensaje) =>

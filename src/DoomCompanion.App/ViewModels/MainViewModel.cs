@@ -16,6 +16,7 @@ public interface IDialogos
 {
     string? ElegirArchivoParaAbrir(string titulo, string filtro);
     string? ElegirArchivoParaGuardar(string titulo, string filtro, string nombreSugerido);
+    string? ElegirCarpeta(string titulo);
     bool Confirmar(string titulo, string mensaje);
     void Avisar(string titulo, string mensaje, bool error = false);
     /// <summary>Muestra el resultado de la validacion; devuelve true si el usuario elige jugar.</summary>
@@ -40,6 +41,7 @@ public sealed partial class MainViewModel : ObservableObject
         (_catalogo, var error) = ServicioDatos.CargarCatalogo();
         if (error is not null) _dialogos.Avisar("Catálogo", error, error: true);
         HayAutoguardado = File.Exists(ServicioDatos.RutaAutoguardado);
+        ServicioImagenes.Usar(ServicioImagenes.BuscarCarpeta(ServicioDatos.LeerConfiguracion().CarpetaImagenes));
         ActualizarOpciones();
     }
 
@@ -55,6 +57,7 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty] private AreaVM? _areaSeleccionada;
     [ObservableProperty] private IReadOnlyList<GrupoInventarioVM> _inventario = [];
     [ObservableProperty] private IReadOnlyList<EventoVM> _eventosManuales = [];
+    [ObservableProperty] private IReadOnlyList<ColorMarineVM> _coloresMarines = [];
     [ObservableProperty] private IReadOnlyList<string> _eventosAutomaticos = [];
     [ObservableProperty] private IReadOnlyList<EntradaHistorial> _historial = [];
     [ObservableProperty] private IReadOnlyList<OpcionVM> _tiposMonstruo = [];
@@ -169,7 +172,7 @@ public sealed partial class MainViewModel : ObservableObject
         if (_motor is null) return;
         if (!_dialogos.Confirmar("Reiniciar escenario", "Se pierde todo el progreso de esta partida. ¿Reiniciar el escenario desde el principio?"))
             return;
-        var r = _motor.Iniciar();
+        var r = _motor.Iniciar(_motor.Estado.ColoresMarines);
         Refrescar(seleccionar: _motor.Mapa.Escenario.AreaInicial);
         Mostrar(r.Mensajes);
         Autoguardar();
@@ -206,6 +209,24 @@ public sealed partial class MainViewModel : ObservableObject
         ServicioDatos.AbrirCatalogoParaEditar();
         _dialogos.Avisar("Catálogo",
             $"Se abrió tu catálogo para editar:\n{ServicioDatos.RutaCatalogo}\n\nCuando termines de editarlo, guardalo y usá \"Recargar catálogo\".");
+    }
+
+    [RelayCommand]
+    private void ElegirCarpetaImagenes()
+    {
+        var carpeta = _dialogos.ElegirCarpeta("Carpeta de imágenes de DoomGen (la que tiene 4x4_room.png, imp_red.png, etc.)");
+        if (carpeta is null) return;
+        if (!ServicioImagenes.EsCarpetaValida(carpeta))
+        {
+            _dialogos.Avisar("Imágenes", "En esa carpeta no están las imágenes de DoomGen (no se encontró 4x4_room.png).\n\nElegí la carpeta \"doom\" que está dentro de DoomGen.", error: true);
+            return;
+        }
+        var configuracion = ServicioDatos.LeerConfiguracion();
+        configuracion.CarpetaImagenes = carpeta;
+        ServicioDatos.GuardarConfiguracion(configuracion);
+        ServicioImagenes.Usar(carpeta);
+        Estado = $"Imágenes cargadas desde {carpeta}.";
+        VersionMapa++;
     }
 
     [RelayCommand]
@@ -261,6 +282,39 @@ public sealed partial class MainViewModel : ObservableObject
     {
         if (_motor is null || AreaSeleccionada is null || MonstruoAAgregar is null || AreaSeleccionada.EsConocida) return;
         Aplicar(_motor.AgregarMonstruo(AreaSeleccionada.Id, MonstruoAAgregar.Id));
+    }
+
+    /// <summary>Clic en un monstruo del mapa: lo marca como eliminado (o lo revive).</summary>
+    public void AlternarMonstruoDelMapa(string areaId, string monstruoId)
+    {
+        var m = _motor?.MonstruosDe(areaId).FirstOrDefault(x => x.Id == monstruoId);
+        if (_motor is null || m is null) return;
+        Aplicar(_motor.MarcarMonstruo(areaId, monstruoId, !m.Muerto), seleccionar: areaId);
+    }
+
+    /// <summary>Clic en un objeto del mapa: lo marca como recogido.</summary>
+    public void AlternarObjetoDelMapa(string objetoId)
+    {
+        if (_motor is null) return;
+        Aplicar(_motor.RecogerObjeto(objetoId, !_motor.Estado.ObjetosRecogidos.Contains(objetoId)));
+    }
+
+    [RelayCommand]
+    private void AlternarColorMarine(ColorMarineVM? c)
+    {
+        if (_motor is null || c is null) return;
+        var activos = _motor.Estado.ColoresMarines.ToList();
+        if (c.Activo) activos.Remove(c.Color);
+        else activos.Add(c.Color);
+        if (activos.Count == 0)
+        {
+            Refrescar();
+            return;
+        }
+        _motor.CambiarColoresMarines(activos);
+        Estado = "Colores de los marines: " + string.Join(", ", _motor.Estado.ColoresMarines.Select(MotorJuego.NombreColor)) +
+                 ". Los monstruos se repartieron de nuevo entre esos colores.";
+        Aplicar(ResultadoAccion.Ok());
     }
 
     [RelayCommand]
@@ -418,7 +472,7 @@ public sealed partial class MainViewModel : ObservableObject
         {
             if (motor.AreaRevelada(area.Id)) areas.Add(ProyectarArea(area));
             else if (motor.AreaConocida(area.Id))
-                areas.Add(new AreaVM { Id = area.Id, Nombre = area.Nombre, Estado = EstadoArea.Conocida });
+                areas.Add(new AreaVM { Id = area.Id, Nombre = area.Nombre, Estado = EstadoArea.Conocida, ColorArea = PincelArea(area.Id) });
         }
         Areas = areas;
 
@@ -443,6 +497,9 @@ public sealed partial class MainViewModel : ObservableObject
             .ToList();
         EventosAutomaticos = mapa.Eventos.Where(e => !e.Manual && motor.Estado.EventosActivos.Contains(e.Id))
             .Select(e => e.Nombre).ToList();
+        ColoresMarines = new[] { ColorFigura.Rojo, ColorFigura.Verde, ColorFigura.Azul }
+            .Select(c => new ColorMarineVM { Color = c, Nombre = MotorJuego.NombreColor(c), Pincel = PincelFigura(c), Activo = motor.Estado.ColoresMarines.Contains(c) })
+            .ToList();
 
         Historial = motor.Estado.Historial.AsEnumerable().Reverse().ToList();
         ActualizarOpciones();
@@ -458,13 +515,18 @@ public sealed partial class MainViewModel : ObservableObject
         {
             Id = area.Id,
             Nombre = area.Nombre,
+            ColorArea = PincelArea(area.Id),
             Estado = despejada ? EstadoArea.Despejada : EstadoArea.Revelada,
             Preparacion = motor.DescribirPreparacion(area),
             TextoEntrar = area.Textos.Entrar,
             TextoDespejar = despejada ? area.Textos.Despejar : "",
             NotasInvasor = NotasInvasorVisibles ? area.NotasInvasor : null,
             Monstruos = motor.MonstruosDe(area.Id)
-                .Select(m => new MonstruoVM { AreaId = area.Id, Id = m.Id, Nombre = motor.NombreMonstruo(m.Tipo), Muerto = m.Muerto, Agregado = m.Agregado })
+                .Select(m => new MonstruoVM
+                {
+                    AreaId = area.Id, Id = m.Id, Nombre = motor.NombreMonstruo(m.Tipo), Muerto = m.Muerto, Agregado = m.Agregado,
+                    ColorFigura = PincelFigura(m.Color), NombreColor = MotorJuego.NombreColor(m.Color),
+                })
                 .ToList(),
             Objetos = area.Objetos
                 .Select(o => new ObjetoVM { Id = o.Id, Nombre = motor.NombreObjeto(o.Tipo), Cantidad = o.Cantidad, Texto = o.Texto, Recogido = motor.Estado.ObjetosRecogidos.Contains(o.Id) })
@@ -479,6 +541,20 @@ public sealed partial class MainViewModel : ObservableObject
                 .ToList(),
             Recompensas = despejada ? area.Recompensas.Select(r => r.Texto).ToList() : [],
         };
+    }
+
+    private static System.Windows.Media.Brush PincelFigura(ColorFigura c) => c switch
+    {
+        ColorFigura.Rojo => Colores.Roja,
+        ColorFigura.Verde => Colores.Despejada,
+        _ => Colores.Azul,
+    };
+
+    private System.Windows.Media.Brush PincelArea(string areaId)
+    {
+        var pincel = new System.Windows.Media.SolidColorBrush(Colores.DeArea(_motor!.Mapa, areaId));
+        pincel.Freeze();
+        return pincel;
     }
 
     private void ActualizarOpciones()

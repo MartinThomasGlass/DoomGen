@@ -20,7 +20,12 @@ public sealed class EstadoPartida
     public List<EntradaHistorial> Historial { get; set; } = [];
     public ResultadoPartida? Resultado { get; set; }
     public int SiguienteIdMonstruo { get; set; } = 1;
+    /// <summary>Colores de los marines en juego: definen que figuras de invasor estan disponibles.</summary>
+    public List<ColorFigura> ColoresMarines { get; set; } = [ColorFigura.Rojo, ColorFigura.Verde];
 }
+
+/// <summary>Color de las figuras (marines e invasores vienen en estos tres colores).</summary>
+public enum ColorFigura { Rojo, Verde, Azul }
 
 public sealed class MonstruoEnJuego
 {
@@ -29,6 +34,12 @@ public sealed class MonstruoEnJuego
     public bool Muerto { get; set; }
     /// <summary>Agregado a mano durante la partida (aparicion del invasor).</summary>
     public bool Agregado { get; set; }
+    /// <summary>Color de la figura a usar en la mesa.</summary>
+    public ColorFigura Color { get; set; }
+    /// <summary>Casilla indicada por el mapa (sin esto la app la ubica).</summary>
+    public int? X { get; set; }
+    public int? Y { get; set; }
+    public int Rotacion { get; set; }
 }
 
 public enum ResultadoPartida { Victoria, Derrota }

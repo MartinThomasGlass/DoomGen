@@ -2,7 +2,7 @@
 
 Aplicación de escritorio para Windows que acompaña partidas de **Doom: The Boardgame** (Fantasy Flight Games, 2004) jugadas en mesa con las piezas físicas.
 
-La app guarda el mapa del escenario y lo va revelando de a poco (niebla de guerra). Muestra los textos para leer en voz alta, qué pieza colocar en la mesa y dónde, qué monstruos y objetos aparecen, y lleva el inventario del equipo. También otorga las recompensas por despejar cada área.
+La app guarda el mapa del escenario y lo va revelando de a poco (niebla de guerra). Dibuja el plano como DoomGen, con cada pieza y cada ficha en su casilla. Muestra los textos para leer en voz alta y lleva el inventario del equipo.
 
 Todo funciona en local: sin internet, sin servidor y sin IA integrada. Los mapas se escriben en JSON. Se pueden hacer a mano o pedírselos a una IA externa (por ejemplo, Claude) con la **guía para IA** que exporta la app.
 
@@ -11,13 +11,14 @@ Todo funciona en local: sin internet, sin servidor y sin IA integrada. Los mapas
 ## Índice
 
 1. [Instalar y compilar](#1-instalar-y-compilar)
-2. [Cómo se juega con la app](#2-cómo-se-juega-con-la-app)
-3. [Generar mapas con una IA](#3-generar-mapas-con-una-ia)
-4. [Formato del archivo de mapa](#4-formato-del-archivo-de-mapa)
-5. [Validación al importar](#5-validación-al-importar)
-6. [Catálogo de piezas](#6-catálogo-de-piezas)
-7. [Archivos y datos](#7-archivos-y-datos)
-8. [Estructura del proyecto](#8-estructura-del-proyecto)
+2. [Imágenes de las piezas (DoomGen)](#2-imágenes-de-las-piezas-doomgen)
+3. [Cómo se juega con la app](#3-cómo-se-juega-con-la-app)
+4. [Generar mapas con una IA](#4-generar-mapas-con-una-ia)
+5. [Formato del archivo de mapa](#5-formato-del-archivo-de-mapa)
+6. [Validación al importar](#6-validación-al-importar)
+7. [Catálogo de piezas](#7-catálogo-de-piezas)
+8. [Archivos y datos](#8-archivos-y-datos)
+9. [Estructura del proyecto](#9-estructura-del-proyecto)
 
 ---
 
@@ -69,7 +70,15 @@ dotnet run --project src/DoomCompanion.App
 
 ---
 
-## 2. Cómo se juega con la app
+## 2. Imágenes de las piezas (DoomGen)
+
+El plano usa las imágenes del set de DoomGen: piezas de mapa, puertas, monstruos en sus tres colores, marines, objetos y escenografía. **Las imágenes no vienen con la app** (son arte de Fantasy Flight Games): la app las lee de una carpeta de tu PC.
+
+- **Ubicación que busca sola:** `Escritorio\DoomGen\doom`, `%APPDATA%\DoomCompanion\imagenes` o una carpeta `imagenes` al lado del ejecutable.
+- **Otra ubicación:** **⋯ Más → Elegir carpeta de imágenes de DoomGen…** y elegí la carpeta que tiene `4x4_room.png`, `imp_red.png`, etc.
+- **Si falta alguna imagen:** el plano dibuja esa pieza o ficha por su cuenta (placas de metal, fichas redondas con sigla).
+
+## 3. Cómo se juega con la app
 
 La interfaz está pensada para un monitor o una TV horizontal:
 
@@ -96,13 +105,13 @@ La interfaz está pensada para un monitor o una TV horizontal:
    - por evento (violeta);
    - paso abierto (marrón, punteado);
    - teleportador (círculo celeste).
-4. El panel **Colocar en la mesa** dice qué piezas poner (tipo, posición en la cuadrícula y rotación), qué monstruos, qué objetos y qué fichas.
+4. **El plano muestra la escena como DoomGen:** cada monstruo con el color de su figura, los marines en su posición de inicio, los objetos y la escenografía, cada uno en su casilla. El panel **Colocar en la mesa** dice lo mismo en texto: pieza, posición y rotación, y la casilla de cada ficha.
 5. **Clic en una puerta** (en el mapa o en el botón *Abrir* del panel):
    - si se cumplen sus requisitos, se abre y se revela el área del otro lado con su texto;
    - si no, aparece la pista de puerta bloqueada y no se revela nada.
-6. **Monstruos:** cada uno tiene su casilla. Marcá los que mueren. Con **+ Agregar aparición** se suman monstruos que trae el invasor (los agregados se pueden quitar con ✕).
+6. **Monstruos:** marcá los que mueren en el panel o **haciendo clic en su ficha del plano**. Con **+ Agregar aparición** se suman monstruos que trae el invasor (los agregados se pueden quitar con ✕). En **Colores de los marines** elegís qué colores juegan: la app reparte entre esos colores el color de cada monstruo, y te dice qué figura poner.
 7. Cuando no quedan monstruos vivos, el área queda **despejada**: se lee su texto y se otorgan sus **recompensas** (objetos al inventario, puertas desbloqueadas, eventos, información).
-8. **Objetos:** se marcan como recogidos y pasan al inventario compartido. El inventario también se ajusta a mano con − / +, por ejemplo para descontar munición.
+8. **Objetos:** se marcan como recogidos (en el panel o con un clic en su ficha del plano) y pasan al inventario compartido. El inventario también se ajusta a mano con − / +, por ejemplo para descontar munición.
 9. **Eventos manuales:** se marcan en el panel *Eventos* cuando pasan en la mesa. Pueden abrir puertas o dar la victoria.
 10. **Victoria / Derrota:** botones en la barra superior. Si la condición de victoria es despejar un área o activar un evento, la victoria se declara sola.
 
@@ -115,7 +124,7 @@ Otros detalles:
 
 ---
 
-## 3. Generar mapas con una IA
+## 4. Generar mapas con una IA
 
 1. En la app: **⋯ Más → Exportar guía para IA…** (o el botón de la pantalla de inicio). Se genera un `.md` con:
    - el formato completo del mapa;
@@ -134,7 +143,7 @@ La guía usa **tu catálogo actual**. Si editás el catálogo (por ejemplo, para
 
 ---
 
-## 4. Formato del archivo de mapa
+## 5. Formato del archivo de mapa
 
 La referencia completa está en la guía para IA y en [`datos/esquema-mapa.v1.json`](datos/esquema-mapa.v1.json) (JSON Schema draft 2020-12). El ejemplo completo está en [`datos/ejemplos/escenario-ejemplo.json`](datos/ejemplos/escenario-ejemplo.json).
 
@@ -142,12 +151,13 @@ La referencia completa está en la guía para IA y en [`datos/esquema-mapa.v1.js
 mapa (version: 1)
 ├─ escenario: id, titulo, dificultad, marines (1-3), ambientacion,
 │             textos { introduccion, objetivos, victoria, derrota, notasInvasor },
-│             areaInicial, condicionVictoria
+│             areaInicial, condicionVictoria, inicioMarines[] { x, y }
 ├─ eventos[]:        id, nombre, descripcion, manual
 ├─ objetosMision[]:  id, nombre, descripcion, ficha
 ├─ areas[]:   id, nombre, tiles[] { tipo, x, y, rotacion },
-│             textos { entrar, despejar }, monstruos[], objetos[], fichas[],
-│             recompensas[], notasInvasor
+│             textos { entrar, despejar },
+│             monstruos[] { tipo, cantidad, posiciones[] }, objetos[] { id, tipo, cantidad, x, y },
+│             fichas[] { tipo, cantidad, posiciones[] }, recompensas[], notasInvasor
 └─ puertas[]: id, desde, hacia, tipo, textos { abrir, bloqueada }, requisitos, posicion
 ```
 
@@ -155,11 +165,12 @@ mapa (version: 1)
 - **Requisitos:** un árbol con `todas` / `alguna`, cuyas hojas pueden ser `areaDespejada`, `objeto` (+`cantidad`), `puertaAbierta` y `evento`. No existe la negación: así nunca se cierra un camino y la validación de softlocks es exacta.
 - **Recompensas:** `texto`, `otorgarObjeto`, `desbloquearPuerta` (sirve para puertas de cualquier área), `activarEvento`, `revelarInfo` (si trae `area`, su nombre aparece en el mapa como "conocida").
 - **Condición de victoria:** `llegarAArea`, `despejarArea` o `evento`.
+- **Fichas:** cada monstruo, objeto, ficha de escenografía y marine lleva su casilla (`x`, `y`; el demon y las fichas alargadas aceptan `"rotacion": 90`). Las que no la traen, la app las ubica sola.
 - **Plano:** cada pieza va en `(x, y)` (esquina superior izquierda de la pieza ya rotada) con `rotacion` 0/90/180/270 en sentido horario. Las piezas se unen solo por sus **conexiones** (aberturas de 2 casillas). La `posicion` de una puerta es la línea de conexión donde se unen una pieza de cada área: `horizontal` = línea `y`, de `x` a `x+2`; `vertical` = línea `x`, de `y` a `y+2`.
 
 ---
 
-## 5. Validación al importar
+## 6. Validación al importar
 
 1. **Esquema:** errores en español con la ruta exacta. Por ejemplo: `areas[1] (a2).tiles[0].rotacion: Valor no permitido 45. Valores válidos: [0,90,180,270].`
 2. **Referencias:** que no haya ids repetidos y que existan todas las áreas, puertas, eventos y elementos del catálogo que se mencionan.
@@ -169,7 +180,7 @@ mapa (version: 1)
    - ninguna llave u objeto requerido está solo detrás de su propia puerta (**SOFTLOCK**);
    - no hay dependencias circulares entre puertas;
    - no faltan objetos ni eventos que nunca se activan;
-   - como advertencia: áreas sin recompensa.
+   - como advertencia, áreas que no valen la pena: un callejón sin salida con mucha amenaza y poco botín, o un área con mucha amenaza y casi nada para agarrar. Se compara la amenaza de los monstruos con el valor de lo que hay (llaves, armas, objetos de misión, recompensas).
 4. **Piezas y balance** (siempre advertencias):
    - figuras disponibles según la cantidad de marines;
    - piezas, puertas y fichas por encima de lo que trae la caja;
@@ -179,59 +190,50 @@ mapa (version: 1)
    - conexiones libres, que hay que tapar con un callejón sin salida;
    - puertas que no están sobre una conexión entre sus dos áreas, o que no tienen posición;
    - áreas que se tocan por una conexión sin puerta;
-   - piezas de una misma área que no quedan unidas entre sí.
+   - piezas de una misma área que no quedan unidas entre sí;
+   - fichas fuera de su área o encimadas.
 
 Por defecto solo se muestra el resumen. **Ver detalle (spoiler)** pide confirmación antes de revelar el detalle. Los errores de formato se muestran directamente porque hacen falta para corregir el archivo.
 
 ---
 
-## 6. Catálogo de piezas
+## 7. Catálogo de piezas
 
 Archivo: [`datos/catalogo.json`](datos/catalogo.json). Contiene la caja base (sin expansión).
 
 ### Piezas de mapa
 
-Las formas, las conexiones y las cantidades salen de la hoja de referencia visual de la caja. Suman las 58 del manual:
+Las formas y conexiones salen de las imágenes de DoomGen (64 px por casilla), y la **rotación 0 es la orientación de esas imágenes**.
 
 | id | Pieza | Cantidad |
 |---|---|---|
-| `sala-10x9` | Sala grande 10×9 | 1 |
-| `sala-10x5-sur` | Sala 10×5 con salida al sur | 1 |
-| `sala-10x5` | Sala 10×5 de paso (franjas en los bordes) | 1 |
-| `sala-9x5` | Sala 9×5 con tres salidas (irregular) | 1 |
+| `sala-grande` | Sala grande 9×10 | 1 |
+| `sala-10x5-tres` | Sala 10×5 de tres salidas | 1 |
+| `sala-10x5-dos` | Sala 10×5 de dos salidas (franjas en los bordes) | 1 |
+| `sala-9x5` | Sala 9×5 de tres salidas (irregular) | 1 |
 | `sala-5x5` | Sala 5×5 de cuatro salidas (en molinete) | 3 |
 | `sala-4x4` | Sala 4×4 | 5 |
 | `interseccion-cruz` | Intersección en cruz 4×4 | 2 |
 | `interseccion-t` | Intersección en T 4×3 | 4 |
 | `curva-grande` | Curva grande 4×4 en L | 2 |
 | `curva-chica` | Curva chica 3×3 | 3 |
-| `pasillo-corto` | Pasillo corto 2×3 | 10 |
-| `pasillo-largo` | Pasillo largo 2×6 | 4 |
-| `callejon` | Callejón sin salida 1×2 | 21 |
+| `pasillo-corto` | Pasillo corto 3×2 | 10 |
+| `pasillo-largo` | Pasillo largo 6×2 | 4 |
+| `callejon` | Callejón sin salida 1×2 | 22 |
 
-Cada pieza tiene:
-
-- **`forma`:** filas de arriba hacia abajo, con `#` para cada casilla y `.` para el vacío.
-- **`conexiones`:** aberturas de 2 casillas, indicadas con el lado y la primera columna o fila (contando desde 0).
-
-La **rotación 0** es la orientación en que la pieza aparece en la hoja de referencia.
-
-Hay dos cosas para confirmar con las piezas reales:
-
-- **Sala grande 10×9:** está marcada `"aVerificar"`, porque en la imagen sus conexiones se leían con menos claridad.
-- **Callejones:** la hoja muestra 22 y el manual dice 21. El catálogo usa 21.
+Cada pieza tiene `forma` (filas con `#` = casilla y `.` = vacío), `conexiones` (aberturas de 2 casillas: lado y primera columna o fila, desde 0) e `imagen`. Los callejones son 22 según DoomGen y la hoja visual; el manual dice 21.
 
 ### Resto de los componentes
 
 - **Puertas:** 11 normales y 3 de seguridad.
 - **Monstruos:** trite, zombie e imp ×12; demon, archvile, mancubus y hell knight ×6; cyberdemon ×3.
-- **Fichas:** 18 obstáculos, 6 encuentros y 6 teleportadores.
-- **Equipo:** 45 de munición, 21 armas, 12 de salud y 15 de otro tipo. El manual da solo esos totales por grupo; el reparto por tipo (cuántas escopetas, cuántas celdas, etc.) es una estimación balanceada, marcada con `"estimado": true`.
+- **Escenografía:** obstáculos de 1×1, 1×2 y 1×3, residuos, cadáveres, ductos, barriles, encuentros y teleportadores rojos, azules y amarillos. Muchas son de doble cara: no se pueden usar las dos caras de la misma ficha a la vez.
+- **Equipo** (cantidades del set de DoomGen): 3 de cada arma; munición 21 de balas, 15 de cohetes y 9 de celdas; 12 botiquines, 15 fichas de armadura (las mismas de la armadura inicial de los marines), 3 berserk y 3 adrenalinas. Cada objeto tiene un **valor** orientativo que usa la validación.
 - **Figuras por color:** las figuras vienen en 3 colores, y las del color de un marine que no juega vuelven a la caja. La app calcula las disponibles como `cantidad ÷ 3 × marines`.
 
 Para editarlo: **⋯ Más → Editar catálogo de piezas…**. Se copia a `%APPDATA%\DoomCompanion\catalogo.json` y se abre. Después de guardar, usá **Recargar catálogo**: la app revisa que las formas y las conexiones sean coherentes. Si cambiás el catálogo, volvé a exportar la guía para IA.
 
-## 7. Archivos y datos
+## 8. Archivos y datos
 
 | Qué | Dónde |
 |---|---|
@@ -241,7 +243,7 @@ Para editarlo: **⋯ Más → Editar catálogo de piezas…**. Se copia a `%APPD
 
 ---
 
-## 8. Estructura del proyecto
+## 9. Estructura del proyecto
 
 ```
 DoomCompanion/

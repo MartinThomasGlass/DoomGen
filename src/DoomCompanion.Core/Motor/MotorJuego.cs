@@ -20,9 +20,16 @@ public sealed class MotorJuego : IContextoRequisitos
     }
 
     /// <summary>Empieza la partida desde cero: briefing y area inicial revelada.</summary>
-    public ResultadoAccion Iniciar()
+    /// <summary>Colores de marine por defecto segun cuantos marines juegan.</summary>
+    public static List<ColorFigura> ColoresPorDefecto(int marines) =>
+        [.. new[] { ColorFigura.Rojo, ColorFigura.Verde, ColorFigura.Azul }.Take(Math.Clamp(marines, 1, 3))];
+
+    public ResultadoAccion Iniciar(IReadOnlyList<ColorFigura>? colores = null)
     {
-        Estado = new EstadoPartida();
+        Estado = new EstadoPartida
+        {
+            ColoresMarines = colores is { Count: > 0 } ? [.. colores] : ColoresPorDefecto(Mapa.Escenario.Marines),
+        };
         var textos = Mapa.Escenario.Textos;
         var mensajes = new List<Mensaje>
         {
@@ -116,10 +123,21 @@ public sealed class MotorJuego : IContextoRequisitos
         if (area is null || !Estado.AreasReveladas.Add(areaId)) return;
 
         var lista = new List<MonstruoEnJuego>();
+        Estado.Monstruos[areaId] = lista;
         foreach (var g in area.Monstruos)
             for (var i = 0; i < g.Cantidad; i++)
-                lista.Add(new MonstruoEnJuego { Id = NuevoIdMonstruo(), Tipo = g.Tipo });
-        Estado.Monstruos[areaId] = lista;
+            {
+                var pos = g.Posiciones?.ElementAtOrDefault(i);
+                lista.Add(new MonstruoEnJuego
+                {
+                    Id = NuevoIdMonstruo(),
+                    Tipo = g.Tipo,
+                    Color = SiguienteColor(g.Tipo),
+                    X = pos?.X,
+                    Y = pos?.Y,
+                    Rotacion = pos?.Rotacion ?? 0,
+                });
+            }
 
         mensajes.Add(new Mensaje(TipoMensaje.Entrada, area.Nombre, area.Textos.Entrar, DescribirPreparacion(area)));
 
@@ -143,13 +161,57 @@ public sealed class MotorJuego : IContextoRequisitos
             var tam = cat?.TieneForma != true && t.Ancho is int an && t.Alto is int al ? $" de {an}×{al}" : "";
             lineas.Add($"Pieza: {nombre}{tam} en ({t.X}, {t.Y}), rotación {t.Rotacion}°{(t.Nota is { } n ? $" — {n}" : "")}");
         }
-        foreach (var g in area.Monstruos)
-            lineas.Add($"Monstruo: {g.Cantidad} × {NombreMonstruo(g.Tipo)}");
-        foreach (var o in area.Objetos)
-            lineas.Add($"Objeto: {o.Cantidad} × {NombreObjeto(o.Tipo)}");
-        foreach (var f in area.Fichas)
-            lineas.Add($"Ficha: {f.Cantidad} × {Catalogo.BuscarFicha(f.Tipo)?.Nombre ?? f.Tipo}{(f.Nota is { } n ? $" — {n}" : "")}");
+
+        // Fichas con su casilla, tal como aparecen en el plano.
+        var fichas = DistribucionFichas.Calcular(Mapa, Catalogo, Estado, area);
+        string En(FichaEnPlano f) => $"({f.X}, {f.Y})";
+
+        var marines = fichas.Where(f => f.Clase == ClaseFicha.Marine).ToList();
+        if (marines.Count > 0)
+            lineas.Add("Marines: " + string.Join(", ", marines.Select(f => $"{NombreColor(f.Color!.Value)} en {En(f)}")));
+        foreach (var g in fichas.Where(f => f.Clase == ClaseFicha.Monstruo).GroupBy(f => f.Tipo))
+            lineas.Add($"Monstruo: {g.Count()} × {NombreMonstruo(g.Key)} — " +
+                       string.Join(", ", g.Select(f => $"{NombreColor(f.Color!.Value)} en {En(f)}")));
+        foreach (var f in fichas.Where(f => f.Clase == ClaseFicha.Objeto))
+            lineas.Add($"Objeto: {f.Cantidad} × {NombreObjeto(f.Tipo)} en {En(f)}");
+        foreach (var g in fichas.Where(f => f.Clase == ClaseFicha.Escenografia).GroupBy(f => f.Tipo))
+        {
+            var nota = area.Fichas.FirstOrDefault(x => x.Tipo == g.Key)?.Nota;
+            lineas.Add($"Ficha: {g.Count()} × {Catalogo.BuscarFicha(g.Key)?.Nombre ?? g.Key} en " +
+                       string.Join(", ", g.Select(En)) + (nota is null ? "" : $" — {nota}"));
+        }
         return string.Join("\n", lineas);
+    }
+
+    public static string NombreColor(ColorFigura c) => c switch
+    {
+        ColorFigura.Rojo => "rojo",
+        ColorFigura.Verde => "verde",
+        _ => "azul",
+    };
+
+    /// <summary>
+    /// Reparte los colores de los marines en juego entre las figuras de cada tipo de monstruo,
+    /// de a uno por vez, para no agotar las figuras de un solo color.
+    /// </summary>
+    private ColorFigura SiguienteColor(string tipo)
+    {
+        var colores = Estado.ColoresMarines.Count > 0 ? Estado.ColoresMarines : ColoresPorDefecto(Mapa.Escenario.Marines);
+        var yaHay = Estado.Monstruos.Values.SelectMany(l => l).Count(m => m.Tipo == tipo);
+        return colores[yaHay % colores.Count];
+    }
+
+    /// <summary>Cambia los colores de los marines en juego y vuelve a repartir los de los monstruos.</summary>
+    public void CambiarColoresMarines(IReadOnlyList<ColorFigura> colores)
+    {
+        if (colores.Count == 0) return;
+        Estado.ColoresMarines = [.. colores.Distinct().OrderBy(c => c)];
+        foreach (var grupo in Estado.Monstruos.Values.SelectMany(l => l).GroupBy(m => m.Tipo))
+        {
+            var k = 0;
+            foreach (var m in grupo.OrderBy(m => int.TryParse(m.Id.AsSpan(1), out var n) ? n : 0))
+                m.Color = Estado.ColoresMarines[k++ % Estado.ColoresMarines.Count];
+        }
     }
 
     public ResultadoAccion MarcarMonstruo(string areaId, string monstruoId, bool muerto)
@@ -163,7 +225,7 @@ public sealed class MotorJuego : IContextoRequisitos
     public ResultadoAccion AgregarMonstruo(string areaId, string tipo)
     {
         if (!AreaRevelada(areaId) || Catalogo.BuscarMonstruo(tipo) is null) return ResultadoAccion.Falla();
-        Estado.Monstruos[areaId].Add(new MonstruoEnJuego { Id = NuevoIdMonstruo(), Tipo = tipo, Agregado = true });
+        Estado.Monstruos[areaId].Add(new MonstruoEnJuego { Id = NuevoIdMonstruo(), Tipo = tipo, Agregado = true, Color = SiguienteColor(tipo) });
         return Registrar(ResultadoAccion.Ok(new Mensaje(TipoMensaje.Info, "Aparición",
             $"Aparece {NombreMonstruo(tipo)} en {NombreArea(areaId)}.")));
     }

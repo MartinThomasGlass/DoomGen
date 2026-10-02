@@ -62,7 +62,8 @@ public static class ValidadorInventario
                 Aviso("areas", $"El mapa usa {usadas} fichas de {cat.Nombre} y la caja trae {c}.");
         }
         var teleportadores = mapa.Puertas.Count(x => x.Tipo == TipoPuerta.Teleportador) * 2;
-        if (catalogo.BuscarFicha("teleportador")?.Cantidad is int tc && teleportadores > tc)
+        var tc = catalogo.Fichas.Where(f => f.Id.StartsWith("teleportador", StringComparison.Ordinal)).Sum(f => f.Cantidad ?? 0);
+        if (tc > 0 && teleportadores > tc)
             Aviso("puertas", $"Las conexiones por teleportador necesitan {teleportadores} fichas y la caja trae {tc}.");
 
         // Equipo: objetos colocados + objetos otorgados por recompensas.

@@ -60,7 +60,13 @@
           }
         },
         "areaInicial": { "$ref": "#/$defs/id" },
-        "condicionVictoria": { "$ref": "#/$defs/condicionVictoria" }
+        "condicionVictoria": { "$ref": "#/$defs/condicionVictoria" },
+        "inicioMarines": {
+          "type": "array",
+          "maxItems": 3,
+          "description": "Casillas de inicio de los marines (rojo, verde, azul), dentro del área inicial. Opcional: si falta, la app las elige.",
+          "items": { "$ref": "#/$defs/posicionFicha" }
+        }
       }
     },
     "condicionVictoria": {
@@ -143,7 +149,13 @@
       "additionalProperties": false,
       "properties": {
         "tipo": { "$ref": "#/$defs/id" },
-        "cantidad": { "type": "integer", "minimum": 1, "maximum": 12 }
+        "cantidad": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "posiciones": {
+          "type": "array",
+          "maxItems": 12,
+          "description": "Casilla de cada figura (esquina superior izquierda). Opcional: las que falten las ubica la app.",
+          "items": { "$ref": "#/$defs/posicionFicha" }
+        }
       }
     },
     "objetoEnArea": {
@@ -154,8 +166,11 @@
         "id": { "$ref": "#/$defs/id" },
         "tipo": { "$ref": "#/$defs/id" },
         "cantidad": { "type": "integer", "minimum": 1, "default": 1 },
-        "texto": { "type": "string" }
-      }
+        "texto": { "type": "string" },
+        "x": { "type": "integer", "minimum": 0, "description": "Casilla de la ficha (opcional)." },
+        "y": { "type": "integer", "minimum": 0, "description": "Casilla de la ficha (opcional)." }
+      },
+      "dependentRequired": { "x": ["y"], "y": ["x"] }
     },
     "fichaEnArea": {
       "type": "object",
@@ -164,7 +179,25 @@
       "properties": {
         "tipo": { "$ref": "#/$defs/id" },
         "cantidad": { "type": "integer", "minimum": 1, "default": 1 },
-        "nota": { "type": "string" }
+        "nota": { "type": "string" },
+        "posiciones": {
+          "type": "array",
+          "description": "Posición de cada ficha. Opcional: las que falten las ubica la app.",
+          "items": { "$ref": "#/$defs/posicionFicha" }
+        }
+      }
+    },
+    "posicionFicha": {
+      "type": "object",
+      "required": ["x", "y"],
+      "additionalProperties": false,
+      "description": "Casilla superior izquierda de una ficha en el plano.",
+      "properties": {
+        "x": { "type": "integer", "minimum": 0 },
+        "y": { "type": "integer", "minimum": 0 },
+        "rotacion": { "enum": [0, 90], "description": "90 = ficha alargada en vertical (por ejemplo un demon)." },
+        "ancho": { "type": "integer", "minimum": 1, "maximum": 4, "description": "Solo escenografía de más de una casilla." },
+        "alto": { "type": "integer", "minimum": 1, "maximum": 4, "description": "Solo escenografía de más de una casilla." }
       }
     },
     "recompensa": {

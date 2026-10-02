@@ -28,6 +28,9 @@ public static class ValidadorGeometria
                 if (!duenos.TryAdd(celda, pieza) && choques.Add((duenos[celda], pieza)) && choques.Count <= MaxAvisosPorTipo)
                     Aviso(pieza.Ruta, $"La pieza se superpone con {duenos[celda].Descripcion} en la casilla ({celda.X}, {celda.Y}).");
 
+        // 1b. Fichas con posicion: dentro de su area y sin encimarse.
+        ValidarFichas(mapa, catalogo, Aviso);
+
         // Las demas verificaciones necesitan conocer las conexiones de todas las piezas.
         var conForma = piezas.Where(x => GeometriaTiles.TieneForma(x.Tile, catalogo)).ToList();
         if (conForma.Count < piezas.Count) return p;
@@ -104,6 +107,64 @@ public static class ValidadorGeometria
         }
 
         return p;
+    }
+
+    private static void ValidarFichas(Mapa mapa, Catalogo catalogo, Action<string, string> aviso)
+    {
+        for (var i = 0; i < mapa.Areas.Count; i++)
+        {
+            var area = mapa.Areas[i];
+            var ruta = $"areas[{i}] ({area.Id})";
+            var celdasArea = area.Tiles.SelectMany(t => GeometriaTiles.Celdas(t, catalogo)).ToHashSet();
+            var fichas = new List<(string Que, string Ruta, int X, int Y, int Ancho, int Alto)>();
+
+            for (var g = 0; g < area.Monstruos.Count; g++)
+            {
+                var grupo = area.Monstruos[g];
+                var posiciones = grupo.Posiciones ?? [];
+                if (posiciones.Count > grupo.Cantidad)
+                    aviso($"{ruta}.monstruos[{g}].posiciones", $"Hay {posiciones.Count} posiciones para {grupo.Cantidad} figura(s).");
+                var nombre = catalogo.BuscarMonstruo(grupo.Tipo)?.Nombre ?? grupo.Tipo;
+                foreach (var p in posiciones)
+                {
+                    var (an, al) = DoomCompanion.Core.Motor.DistribucionFichas.TamanoMonstruo(catalogo, grupo.Tipo, p.Rotacion);
+                    fichas.Add((nombre, $"{ruta}.monstruos[{g}]", p.X, p.Y, an, al));
+                }
+            }
+            for (var o = 0; o < area.Objetos.Count; o++)
+                if (area.Objetos[o] is { X: int x, Y: int y } obj)
+                    fichas.Add((catalogo.BuscarObjeto(obj.Tipo)?.Nombre ?? obj.Tipo, $"{ruta}.objetos[{o}]", x, y, 1, 1));
+            for (var f = 0; f < area.Fichas.Count; f++)
+            {
+                var ficha = area.Fichas[f];
+                var posiciones = ficha.Posiciones ?? [];
+                if (posiciones.Count > ficha.Cantidad)
+                    aviso($"{ruta}.fichas[{f}].posiciones", $"Hay {posiciones.Count} posiciones para {ficha.Cantidad} ficha(s).");
+                foreach (var p in posiciones)
+                {
+                    var (an, al) = DoomCompanion.Core.Motor.DistribucionFichas.TamanoEscenografia(catalogo, ficha.Tipo, p);
+                    fichas.Add((catalogo.BuscarFicha(ficha.Tipo)?.Nombre ?? ficha.Tipo, $"{ruta}.fichas[{f}]", p.X, p.Y, an, al));
+                }
+            }
+            if (area.Id == mapa.Escenario.AreaInicial)
+                foreach (var p in mapa.Escenario.InicioMarines ?? [])
+                    fichas.Add(("Marine", "escenario.inicioMarines", p.X, p.Y, 1, 1));
+
+            var ocupadas = new Dictionary<Celda, string>();
+            foreach (var (que, rutaFicha, x, y, an, al) in fichas)
+            {
+                var celdas = Enumerable.Range(0, an).SelectMany(dx => Enumerable.Range(0, al).Select(dy => new Celda(x + dx, y + dy))).ToList();
+                if (celdas.Any(c => !celdasArea.Contains(c)))
+                {
+                    aviso(rutaFicha, $"{que} en ({x}, {y}) queda fuera de las piezas del área {area.Id}.");
+                    continue;
+                }
+                var choque = celdas.FirstOrDefault(ocupadas.ContainsKey);
+                if (ocupadas.ContainsKey(choque))
+                    aviso(rutaFicha, $"{que} en ({x}, {y}) se encima con {ocupadas[choque]} en la casilla ({choque.X}, {choque.Y}).");
+                foreach (var c in celdas) ocupadas.TryAdd(c, que);
+            }
+        }
     }
 
     private sealed record Pieza(Area Area, int IndiceArea, ColocacionTile Tile, int IndiceTile)

@@ -161,17 +161,70 @@ public class ValidacionLogicaTests
     }
 
     [Fact]
-    public void AreaSinRecompensaEsAdvertenciaNoError()
+    public void AreaSinRecompensaPorDespejarNoEsProblema()
     {
         var mapa = MapaMinimo();
         mapa.Areas[1].Recompensas.Clear();
 
         var r = Importar(mapa);
 
-        Assert.True(r.SePuedeJugar);
+        Assert.Equal("Mapa válido.", r.Resumen);
+    }
+
+    /// <summary>Mapa minimo con un area a3 sin salida (solo se entra por p2 desde a1).</summary>
+    private static Mapa ConCallejonSinSalida(GrupoMonstruos monstruos, params ObjetoEnArea[] objetos)
+    {
+        var mapa = MapaMinimo();
+        var a3 = NuevaArea("a3");
+        a3.Recompensas.Clear();
+        a3.Monstruos.Add(monstruos);
+        a3.Objetos.AddRange(objetos);
+        mapa.Areas.Add(a3);
+        mapa.Puertas.Add(new Puerta { Id = "p2", Desde = "a1", Hacia = "a3", Tipo = TipoPuerta.Normal });
+        return mapa;
+    }
+
+    private static IEnumerable<string> AvisosLogicos(ResultadoImportacion r) =>
+        r.Problemas.Where(p => p.Severidad == Severidad.Advertencia && p.Categoria == CategoriaProblema.Logica).Select(p => p.Mensaje);
+
+    [Fact]
+    public void CallejonSinSalidaConMuchaAmenazaYPocoBotinEsAdvertencia()
+    {
+        var mapa = ConCallejonSinSalida(new GrupoMonstruos { Tipo = "cyberdemon", Cantidad = 1 },
+            new ObjetoEnArea { Id = "o1", Tipo = "municion-balas" });
+
+        var r = Importar(mapa);
+
         Assert.False(r.TieneProblemaLogico);
-        Assert.Equal("Mapa válido (1 advertencia).", r.Resumen);
-        Assert.Contains(r.Problemas, p => p.Severidad == Severidad.Advertencia && p.Mensaje.Contains("no da ninguna recompensa"));
+        Assert.Contains(AvisosLogicos(r), m => m.Contains("(a3)") && m.Contains("no conviene entrar"));
+    }
+
+    [Fact]
+    public void CallejonSinSalidaConUnaLlaveDetrasDeLosMonstruosVale()
+    {
+        var mapa = ConCallejonSinSalida(new GrupoMonstruos { Tipo = "cyberdemon", Cantidad = 1 },
+            new ObjetoEnArea { Id = "o1", Tipo = "llave-roja" },
+            new ObjetoEnArea { Id = "o2", Tipo = "arma-plasma" });
+
+        var r = Importar(mapa);
+
+        Assert.DoesNotContain(AvisosLogicos(r), m => m.Contains("(a3)"));
+    }
+
+    [Fact]
+    public void AreaConMuchaAmenazaYNadaParaAgarrarEsAdvertenciaAunqueTengaSalida()
+    {
+        var mapa = MapaMinimo();
+        var a3 = NuevaArea("a3");
+        a3.Recompensas.Clear();
+        a3.Monstruos.Add(new GrupoMonstruos { Tipo = "hellknight", Cantidad = 2 });
+        mapa.Areas.Add(a3);
+        mapa.Puertas.Add(new Puerta { Id = "p2", Desde = "a1", Hacia = "a3", Tipo = TipoPuerta.Normal });
+        mapa.Puertas.Add(new Puerta { Id = "p3", Desde = "a3", Hacia = "a2", Tipo = TipoPuerta.Normal });
+
+        var r = Importar(mapa);
+
+        Assert.Contains(AvisosLogicos(r), m => m.Contains("(a3)") && m.Contains("casi nada para agarrar"));
     }
 
     [Fact]

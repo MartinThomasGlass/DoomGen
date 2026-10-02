@@ -60,6 +60,9 @@ public sealed class TileCatalogo
     public bool AVerificar { get; set; }
     public string? Nota { get; set; }
 
+    /// <summary>Archivo de imagen dentro de la carpeta de imagenes (formato DoomGen: 64 px por casilla y 1 casilla de margen).</summary>
+    public string? Imagen { get; set; }
+
     public bool TieneForma => Forma is { Count: > 0 };
 
     public List<string> Validar()
@@ -121,6 +124,7 @@ public sealed class PuertaCatalogo
     public TipoPuerta Tipo { get; set; }
     public string Nombre { get; set; } = "";
     public int Cantidad { get; set; }
+    public string? Imagen { get; set; }
     public bool AVerificar { get; set; }
     public string? Nota { get; set; }
 }
@@ -134,6 +138,10 @@ public sealed class MonstruoCatalogo
     public int Casillas { get; set; } = 1;
     /// <summary>Peso orientativo de peligro, para balancear (no es un valor oficial).</summary>
     public int Amenaza { get; set; } = 1;
+    /// <summary>Texto corto para la ficha en el plano (por ejemplo "IMP").</summary>
+    public string? Sigla { get; set; }
+    /// <summary>Nombre base de la imagen; se le agrega _red, _green o _blue segun el color.</summary>
+    public string? Imagen { get; set; }
     public string? Nota { get; set; }
 
     /// <summary>
@@ -155,6 +163,11 @@ public sealed class ObjetoCatalogo
     public string? Grupo { get; set; }
     /// <summary>Para armas: id del objeto de municion que usa (null = no usa municion).</summary>
     public string? Municion { get; set; }
+    /// <summary>Que tan valioso es para los marines (orientativo, para balancear).</summary>
+    public int Valor { get; set; } = 1;
+    /// <summary>Texto corto para la ficha en el plano (por ejemplo "ESC").</summary>
+    public string? Sigla { get; set; }
+    public string? Imagen { get; set; }
     public string? Nota { get; set; }
 }
 
@@ -170,6 +183,10 @@ public sealed class FichaCatalogo
     public string Id { get; set; } = "";
     public string Nombre { get; set; } = "";
     public int? Cantidad { get; set; }
+    /// <summary>Casillas que ocupa la ficha (por defecto 1×1).</summary>
+    public int Ancho { get; set; } = 1;
+    public int Alto { get; set; } = 1;
+    public string? Imagen { get; set; }
     public bool AVerificar { get; set; }
     public string? Nota { get; set; }
 }

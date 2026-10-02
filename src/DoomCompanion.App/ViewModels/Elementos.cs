@@ -26,6 +26,8 @@ public sealed class AreaVM
         _ => Colores.ConEnemigos,
     };
     public bool EsConocida => Estado == EstadoArea.Conocida;
+    /// <summary>Color del area en el mapa (para el panel lateral).</summary>
+    public Brush ColorArea { get; init; } = Brushes.Gray;
     public bool EsDespejada => Estado == EstadoArea.Despejada;
     public string Preparacion { get; init; } = "";
     public string TextoEntrar { get; init; } = "";
@@ -52,7 +54,10 @@ public sealed class MonstruoVM
     public required string Nombre { get; init; }
     public bool Muerto { get; init; }
     public bool Agregado { get; init; }
-    public string Etiqueta => Agregado ? $"{Nombre}  (aparición)" : Nombre;
+    /// <summary>Color de la figura a usar en la mesa.</summary>
+    public Brush ColorFigura { get; init; } = Brushes.Gray;
+    public string NombreColor { get; init; } = "";
+    public string Etiqueta => $"{Nombre} {NombreColor}" + (Agregado ? "  (aparición)" : "");
 }
 
 public sealed class ObjetoVM
@@ -97,6 +102,14 @@ public sealed class EventoVM
     public bool Activo { get; init; }
 }
 
+public sealed class ColorMarineVM
+{
+    public required DoomCompanion.Core.Motor.ColorFigura Color { get; init; }
+    public required string Nombre { get; init; }
+    public required Brush Pincel { get; init; }
+    public bool Activo { get; init; }
+}
+
 public sealed class OpcionVM
 {
     public required string Id { get; init; }
@@ -124,6 +137,30 @@ public static class Colores
     public static readonly Brush Evento = B("#AB47BC");
     public static readonly Brush Paso = B("#A1887F");
     public static readonly Brush Teleportador = B("#26C6DA");
+
+    /// <summary>Gris del area inicial (sin tinte, como el START de DoomGen).</summary>
+    public static readonly Color Inicio = Color.FromRgb(0x9E, 0xA2, 0xA8);
+
+    private static readonly Color[] PaletaAreas =
+    [
+        Color.FromRgb(0xB0, 0x3C, 0xC8), // violeta
+        Color.FromRgb(0x3D, 0x55, 0xE0), // azul
+        Color.FromRgb(0xC8, 0x2E, 0x2E), // rojo
+        Color.FromRgb(0xC9, 0xB8, 0x1E), // amarillo
+        Color.FromRgb(0x3E, 0x9B, 0x48), // verde
+        Color.FromRgb(0x1F, 0xA7, 0xB8), // turquesa
+        Color.FromRgb(0xE0, 0x7B, 0x1A), // naranja
+        Color.FromRgb(0x8A, 0x9A, 0x2E), // oliva
+        Color.FromRgb(0xD8, 0x4C, 0x8F), // rosa
+    ];
+
+    /// <summary>Color propio de cada area: el inicial es gris y el resto rota por la paleta.</summary>
+    public static Color DeArea(Mapa mapa, string areaId)
+    {
+        if (areaId == mapa.Escenario.AreaInicial) return Inicio;
+        var indice = mapa.Areas.Where(a => a.Id != mapa.Escenario.AreaInicial).ToList().FindIndex(a => a.Id == areaId);
+        return indice < 0 ? Inicio : PaletaAreas[indice % PaletaAreas.Length];
+    }
 
     public static Brush DePuerta(TipoPuerta t) => t switch
     {

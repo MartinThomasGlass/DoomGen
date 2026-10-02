@@ -38,6 +38,8 @@ public sealed class Escenario
     public TextosEscenario Textos { get; set; } = new();
     public string AreaInicial { get; set; } = "";
     public CondicionVictoria CondicionVictoria { get; set; } = new();
+    /// <summary>Casillas de inicio de los marines (hasta 3, en el area inicial). Sin esto, la app las elige.</summary>
+    public List<PosicionFicha>? InicioMarines { get; set; }
 }
 
 public sealed class TextosEscenario
@@ -109,6 +111,8 @@ public sealed class GrupoMonstruos
 {
     public string Tipo { get; set; } = "";
     public int Cantidad { get; set; } = 1;
+    /// <summary>Casilla de cada figura (opcional). Las que falten las ubica la app.</summary>
+    public List<PosicionFicha>? Posiciones { get; set; }
 }
 
 public sealed class ObjetoEnArea
@@ -117,6 +121,9 @@ public sealed class ObjetoEnArea
     public string Tipo { get; set; } = "";
     public int Cantidad { get; set; } = 1;
     public string? Texto { get; set; }
+    /// <summary>Casilla de la ficha (opcional; sin esto la ubica la app).</summary>
+    public int? X { get; set; }
+    public int? Y { get; set; }
 }
 
 public sealed class FichaEnArea
@@ -124,6 +131,22 @@ public sealed class FichaEnArea
     public string Tipo { get; set; } = "";
     public int Cantidad { get; set; } = 1;
     public string? Nota { get; set; }
+    /// <summary>Posicion de cada ficha (opcional). Las que falten las ubica la app.</summary>
+    public List<PosicionFicha>? Posiciones { get; set; }
+}
+
+/// <summary>
+/// Casilla de una ficha en el plano (esquina superior izquierda). <see cref="Rotacion"/> 90 pone
+/// vertical una ficha alargada (por ejemplo un demon, que ocupa 2 casillas). Ancho y alto solo
+/// para fichas de escenografia de mas de una casilla.
+/// </summary>
+public sealed class PosicionFicha
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+    public int Rotacion { get; set; }
+    public int? Ancho { get; set; }
+    public int? Alto { get; set; }
 }
 
 public enum TipoRecompensa { Texto, OtorgarObjeto, DesbloquearPuerta, ActivarEvento, RevelarInfo }

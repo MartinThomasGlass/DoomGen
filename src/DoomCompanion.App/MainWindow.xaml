@@ -41,6 +41,7 @@
                             <ContextMenu x:Name="MenuMas" FontSize="15">
                                 <MenuItem Header="Exportar guía para IA…" Command="{Binding ExportarGuiaCommand}" />
                                 <Separator />
+                                <MenuItem Header="Elegir carpeta de imágenes de DoomGen…" Command="{Binding ElegirCarpetaImagenesCommand}" />
                                 <MenuItem Header="Editar catálogo de piezas…" Command="{Binding EditarCatalogoCommand}" />
                                 <MenuItem Header="Recargar catálogo" Command="{Binding RecargarCatalogoCommand}" />
                                 <MenuItem Header="Abrir carpeta de datos" Click="AbrirCarpetaDatos" />
@@ -101,6 +102,7 @@
                             <Border DockPanel.Dock="Right" Background="{Binding EstadoColor}" CornerRadius="4" Padding="8,2" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding EstadoTexto}" FontSize="13" FontWeight="Bold" />
                             </Border>
+                            <Border DockPanel.Dock="Left" Width="8" CornerRadius="3" Background="{Binding ColorArea}" Margin="0,4,10,4" />
                             <TextBlock Text="{Binding Nombre}" Style="{StaticResource Titulo}" />
                         </DockPanel>
 
@@ -128,6 +130,7 @@
                                                     Visibility="{Binding Agregado, Converter={StaticResource BoolAVisibilidad}}"
                                                     Command="{Binding DataContext.QuitarMonstruoCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     CommandParameter="{Binding}" />
+                                            <Ellipse DockPanel.Dock="Left" Width="14" Height="14" Fill="{Binding ColorFigura}" Stroke="Black" Margin="0,0,8,0" VerticalAlignment="Center" ToolTip="Color de la figura" />
                                             <CheckBox IsChecked="{Binding Muerto, Mode=OneWay}" Content="{Binding Etiqueta}"
                                                       Command="{Binding DataContext.AlternarMonstruoCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                       CommandParameter="{Binding}" ToolTip="Marcar como eliminado" />
@@ -249,6 +252,22 @@
 
                 <Border Grid.Row="1" Style="{StaticResource Tarjeta}">
                     <StackPanel>
+                        <TextBlock Text="COLORES DE LOS MARINES" Style="{StaticResource Subtitulo}" Margin="0,0,0,4" />
+                        <ItemsControl ItemsSource="{Binding ColoresMarines}" Margin="0,0,0,8">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:ColorMarineVM}">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,14,0">
+                                        <Rectangle Width="14" Height="14" Fill="{Binding Pincel}" Stroke="Black" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                        <CheckBox IsChecked="{Binding Activo, Mode=OneWay}" Content="{Binding Nombre}" ToolTip="Colores en juego: definen qué figuras de monstruo hay"
+                                                  Command="{Binding DataContext.AlternarColorMarineCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                  CommandParameter="{Binding}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                         <TextBlock Text="EVENTOS" Style="{StaticResource Subtitulo}" Margin="0,0,0,4" />
                         <TextBlock Text="Este escenario no tiene eventos manuales." Style="{StaticResource Suave}"
                                    Visibility="{Binding EventosManuales.Count, Converter={StaticResource CeroAVisibilidad}}" />
