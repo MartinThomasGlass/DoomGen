@@ -25,6 +25,7 @@ public static class ImportadorMapa
 
     public static ResultadoImportacion Importar(string json, Catalogo catalogo)
     {
+        json = LimpiarRespuestaIA(json);
         var problemas = ValidadorEsquema.Validar(json);
         if (problemas.Count > 0) return new ResultadoImportacion { Problemas = problemas };
 
@@ -46,5 +47,24 @@ public static class ImportadorMapa
 
         problemas = [.. ValidadorLogico.Validar(mapa, catalogo), .. ValidadorInventario.Validar(mapa, catalogo)];
         return new ResultadoImportacion { Mapa = mapa, JsonOriginal = json, Problemas = problemas };
+    }
+
+    /// <summary>
+    /// Tolera respuestas de IA pegadas tal cual: saca el bloque ```json ... ``` o el texto
+    /// antes de la primera llave y despues de la ultima.
+    /// </summary>
+    internal static string LimpiarRespuestaIA(string texto)
+    {
+        var t = texto.Trim().TrimStart('﻿');
+        var inicioBloque = t.IndexOf("```", StringComparison.Ordinal);
+        if (inicioBloque >= 0)
+        {
+            var finLinea = t.IndexOf('\n', inicioBloque);
+            var cierre = finLinea < 0 ? -1 : t.IndexOf("```", finLinea, StringComparison.Ordinal);
+            if (cierre > finLinea) t = t[(finLinea + 1)..cierre].Trim();
+        }
+        var primera = t.IndexOf('{');
+        var ultima = t.LastIndexOf('}');
+        return primera > 0 && ultima > primera ? t[primera..(ultima + 1)] : t;
     }
 }

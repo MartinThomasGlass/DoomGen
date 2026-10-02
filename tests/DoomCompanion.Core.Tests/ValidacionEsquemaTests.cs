@@ -17,6 +17,16 @@ public class ValidacionEsquemaTests
     }
 
     [Fact]
+    public void AceptaLaRespuestaDeLaIAConBloqueDeCodigoYTextoAlrededor()
+    {
+        var respuesta = "Acá tenés el mapa:\n\n```json\n" + EjemploJson + "\n```\n\n¡Que lo disfruten!";
+
+        var r = ImportadorMapa.Importar(respuesta, CatalogoBase);
+
+        Assert.True(r.SePuedeJugar, string.Join("\n", r.Problemas));
+    }
+
+    [Fact]
     public void JsonMalFormadoIndicaLinea()
     {
         var r = ImportadorMapa.Importar("{\n \"version\": 1,\n \"escenario\": { ", CatalogoBase);
