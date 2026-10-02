@@ -17,6 +17,9 @@ public class GuiaIATests
         Assert.Contains("\"$schema\": \"https://json-schema.org/draft/2020-12/schema\"", guia);
         Assert.Contains("Estación de bombeo Fobos-3", guia);
         Assert.Contains("| `cyberdemon` | Cyberdemon | 3 | 1 / 2 / 3 |", guia);
+        Assert.Contains("#### `sala-9x5` — Sala 9×5 con tres salidas (×1)", guia);
+        Assert.Contains("| 0 | 9 × 5 | norte@3 → horizontal (x+3, y) · oeste@2 → vertical (x, y+2) · este@2 → vertical (x+9, y+2) |", guia);
+        Assert.Contains("...NN....", guia);
         Assert.Contains("Sin softlocks", guia);
         Assert.Contains("Curva de dificultad", guia);
         Assert.Contains("Distribución del equipo", guia);
@@ -39,11 +42,11 @@ public class GuiaIATests
     public void LaGuiaReflejaUnCatalogoEditado()
     {
         var catalogo = CatalogoBase;
-        catalogo.Tiles[0].Ancho = 4;
-        catalogo.Tiles[0].Alto = 6;
+        catalogo.Tiles.Add(new DoomCompanion.Core.Modelo.TileCatalogo { Id = "sala-nueva", Nombre = "Sala nueva", Categoria = "sala", Cantidad = 2, Forma = ["###", "###"] });
 
         var guia = GeneradorGuiaIA.Generar(catalogo);
 
-        Assert.Contains("| `sala` | Sala | 12 | 4×6 |", guia);
+        Assert.Contains("| `sala-nueva` | Sala nueva | sala | 2 |", guia);
+        Assert.Contains("#### `sala-nueva` — Sala nueva (×2)", guia);
     }
 }

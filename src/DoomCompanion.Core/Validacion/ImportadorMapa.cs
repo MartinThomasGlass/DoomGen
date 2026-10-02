@@ -45,7 +45,7 @@ public static class ImportadorMapa
         problemas = ValidadorReferencias.Validar(mapa, catalogo);
         if (problemas.Count > 0) return new ResultadoImportacion { Problemas = problemas };
 
-        problemas = [.. ValidadorLogico.Validar(mapa, catalogo), .. ValidadorInventario.Validar(mapa, catalogo)];
+        problemas = [.. ValidadorLogico.Validar(mapa, catalogo), .. ValidadorInventario.Validar(mapa, catalogo), .. ValidadorGeometria.Validar(mapa, catalogo)];
         return new ResultadoImportacion { Mapa = mapa, JsonOriginal = json, Problemas = problemas };
     }
 

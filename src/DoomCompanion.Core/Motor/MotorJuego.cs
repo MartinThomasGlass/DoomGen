@@ -137,8 +137,10 @@ public sealed class MotorJuego : IContextoRequisitos
         var lineas = new List<string>();
         foreach (var t in area.Tiles)
         {
-            var nombre = Catalogo.BuscarTile(t.Tipo)?.Nombre ?? t.Tipo;
-            var tam = t.Ancho is int an && t.Alto is int al ? $" de {an}×{al}" : "";
+            var cat = Catalogo.BuscarTile(t.Tipo);
+            var nombre = cat?.Nombre ?? t.Tipo;
+            // Con forma en el catalogo el nombre ya trae las medidas; sin forma se usan las del mapa.
+            var tam = cat?.TieneForma != true && t.Ancho is int an && t.Alto is int al ? $" de {an}×{al}" : "";
             lineas.Add($"Pieza: {nombre}{tam} en ({t.X}, {t.Y}), rotación {t.Rotacion}°{(t.Nota is { } n ? $" — {n}" : "")}");
         }
         foreach (var g in area.Monstruos)

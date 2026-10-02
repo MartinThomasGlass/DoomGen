@@ -128,12 +128,12 @@
       "required": ["tipo", "x", "y", "rotacion"],
       "additionalProperties": false,
       "properties": {
-        "tipo": { "$ref": "#/$defs/id" },
-        "x": { "type": "integer", "minimum": 0, "description": "Columna de la esquina superior izquierda, en casillas." },
-        "y": { "type": "integer", "minimum": 0, "description": "Fila de la esquina superior izquierda, en casillas." },
-        "rotacion": { "enum": [0, 90, 180, 270] },
-        "ancho": { "type": "integer", "minimum": 1, "maximum": 20, "description": "Ancho en casillas ya rotado (solo para dibujar el mapa)." },
-        "alto": { "type": "integer", "minimum": 1, "maximum": 20, "description": "Alto en casillas ya rotado (solo para dibujar el mapa)." },
+        "tipo": { "$ref": "#/$defs/id", "description": "Id de la pieza en el catálogo." },
+        "x": { "type": "integer", "minimum": 0, "description": "Columna de la esquina superior izquierda de la pieza ya rotada." },
+        "y": { "type": "integer", "minimum": 0, "description": "Fila de la esquina superior izquierda de la pieza ya rotada." },
+        "rotacion": { "enum": [0, 90, 180, 270], "description": "Grados en sentido horario respecto de la forma del catálogo." },
+        "ancho": { "type": "integer", "minimum": 1, "maximum": 20, "description": "Solo para piezas sin forma en el catálogo: ancho ya rotado, para dibujar." },
+        "alto": { "type": "integer", "minimum": 1, "maximum": 20, "description": "Solo para piezas sin forma en el catálogo: alto ya rotado, para dibujar." },
         "nota": { "type": "string" }
       }
     },
@@ -206,6 +206,7 @@
         "requisitos": { "$ref": "#/$defs/requisito" },
         "posicion": {
           "type": "object",
+          "description": "Línea de conexión donde va la puerta: horizontal = línea y, de x a x+2; vertical = línea x, de y a y+2. Obligatoria salvo en teleportadores (la app avisa si falta).",
           "required": ["x", "y", "orientacion"],
           "additionalProperties": false,
           "properties": {

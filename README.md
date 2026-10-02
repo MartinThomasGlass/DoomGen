@@ -145,7 +145,7 @@ mapa (version: 1)
 │             areaInicial, condicionVictoria
 ├─ eventos[]:        id, nombre, descripcion, manual
 ├─ objetosMision[]:  id, nombre, descripcion, ficha
-├─ areas[]:   id, nombre, tiles[] { tipo, x, y, rotacion, ancho?, alto? },
+├─ areas[]:   id, nombre, tiles[] { tipo, x, y, rotacion },
 │             textos { entrar, despejar }, monstruos[], objetos[], fichas[],
 │             recompensas[], notasInvasor
 └─ puertas[]: id, desde, hacia, tipo, textos { abrir, bloqueada }, requisitos, posicion
@@ -155,6 +155,7 @@ mapa (version: 1)
 - **Requisitos:** un árbol con `todas` / `alguna`, cuyas hojas pueden ser `areaDespejada`, `objeto` (+`cantidad`), `puertaAbierta` y `evento`. No existe la negación: así nunca se cierra un camino y la validación de softlocks es exacta.
 - **Recompensas:** `texto`, `otorgarObjeto`, `desbloquearPuerta` (sirve para puertas de cualquier área), `activarEvento`, `revelarInfo` (si trae `area`, su nombre aparece en el mapa como "conocida").
 - **Condición de victoria:** `llegarAArea`, `despejarArea` o `evento`.
+- **Plano:** cada pieza va en `(x, y)` (esquina superior izquierda de la pieza ya rotada) con `rotacion` 0/90/180/270 en sentido horario. Las piezas se unen solo por sus **conexiones** (aberturas de 2 casillas). La `posicion` de una puerta es la línea de conexión donde se unen una pieza de cada área: `horizontal` = línea `y`, de `x` a `x+2`; `vertical` = línea `x`, de `y` a `y+2`.
 
 ---
 
@@ -169,7 +170,16 @@ mapa (version: 1)
    - no hay dependencias circulares entre puertas;
    - no faltan objetos ni eventos que nunca se activan;
    - como advertencia: áreas sin recompensa.
-4. **Piezas y balance** (siempre advertencias): figuras disponibles según la cantidad de marines, puertas y fichas de la caja, y armas sin su munición.
+4. **Piezas y balance** (siempre advertencias):
+   - figuras disponibles según la cantidad de marines;
+   - piezas, puertas y fichas por encima de lo que trae la caja;
+   - armas sin su munición.
+5. **Plano** (siempre advertencias):
+   - piezas superpuestas;
+   - conexiones libres, que hay que tapar con un callejón sin salida;
+   - puertas que no están sobre una conexión entre sus dos áreas, o que no tienen posición;
+   - áreas que se tocan por una conexión sin puerta;
+   - piezas de una misma área que no quedan unidas entre sí.
 
 Por defecto solo se muestra el resumen. **Ver detalle (spoiler)** pide confirmación antes de revelar el detalle. Los errores de formato se muestran directamente porque hacen falta para corregir el archivo.
 
@@ -177,23 +187,49 @@ Por defecto solo se muestra el resumen. **Ver detalle (spoiler)** pide confirmac
 
 ## 6. Catálogo de piezas
 
-Archivo: [`datos/catalogo.json`](datos/catalogo.json). Contiene las cantidades del manual de la caja base (sin expansión):
+Archivo: [`datos/catalogo.json`](datos/catalogo.json). Contiene la caja base (sin expansión).
 
-- 58 piezas de mapa: 12 salas, 14 pasillos, 5 curvas, 6 intersecciones y 21 callejones sin salida;
-- 11 puertas normales y 3 de seguridad;
-- monstruos: trite, zombie e imp ×12; demon, archvile, mancubus y hell knight ×6; cyberdemon ×3;
-- 18 obstáculos, 6 encuentros, 6 teleportadores;
-- equipo: 45 de munición, 21 armas, 12 de salud y 15 de otro tipo.
+### Piezas de mapa
 
-Aclaraciones:
+Las formas, las conexiones y las cantidades salen de la hoja de referencia visual de la caja. Suman las 58 del manual:
 
-- **Desglose estimado:** el manual da totales por grupo. El reparto por tipo (cuántas escopetas, cuántas celdas, etc.) es una estimación balanceada y está marcado con `"estimado": true`.
-- **A verificar:** lo marcado con `"aVerificar": true` hay que confirmarlo con la caja real. Incluye las medidas de cada pieza de mapa, que todavía están vacías.
+| id | Pieza | Cantidad |
+|---|---|---|
+| `sala-10x9` | Sala grande 10×9 | 1 |
+| `sala-10x5-sur` | Sala 10×5 con salida al sur | 1 |
+| `sala-10x5` | Sala 10×5 de paso (franjas en los bordes) | 1 |
+| `sala-9x5` | Sala 9×5 con tres salidas (irregular) | 1 |
+| `sala-5x5` | Sala 5×5 de cuatro salidas (en molinete) | 3 |
+| `sala-4x4` | Sala 4×4 | 5 |
+| `interseccion-cruz` | Intersección en cruz 4×4 | 2 |
+| `interseccion-t` | Intersección en T 4×3 | 4 |
+| `curva-grande` | Curva grande 4×4 en L | 2 |
+| `curva-chica` | Curva chica 3×3 | 3 |
+| `pasillo-corto` | Pasillo corto 2×3 | 10 |
+| `pasillo-largo` | Pasillo largo 2×6 | 4 |
+| `callejon` | Callejón sin salida 1×2 | 21 |
+
+Cada pieza tiene:
+
+- **`forma`:** filas de arriba hacia abajo, con `#` para cada casilla y `.` para el vacío.
+- **`conexiones`:** aberturas de 2 casillas, indicadas con el lado y la primera columna o fila (contando desde 0).
+
+La **rotación 0** es la orientación en que la pieza aparece en la hoja de referencia.
+
+Hay dos cosas para confirmar con las piezas reales:
+
+- **Sala grande 10×9:** está marcada `"aVerificar"`, porque en la imagen sus conexiones se leían con menos claridad.
+- **Callejones:** la hoja muestra 22 y el manual dice 21. El catálogo usa 21.
+
+### Resto de los componentes
+
+- **Puertas:** 11 normales y 3 de seguridad.
+- **Monstruos:** trite, zombie e imp ×12; demon, archvile, mancubus y hell knight ×6; cyberdemon ×3.
+- **Fichas:** 18 obstáculos, 6 encuentros y 6 teleportadores.
+- **Equipo:** 45 de munición, 21 armas, 12 de salud y 15 de otro tipo. El manual da solo esos totales por grupo; el reparto por tipo (cuántas escopetas, cuántas celdas, etc.) es una estimación balanceada, marcada con `"estimado": true`.
 - **Figuras por color:** las figuras vienen en 3 colores, y las del color de un marine que no juega vuelven a la caja. La app calcula las disponibles como `cantidad ÷ 3 × marines`.
 
-Para editarlo: **⋯ Más → Editar catálogo de piezas…**. Se copia a `%APPDATA%\DoomCompanion\catalogo.json` y se abre. Después de guardar, usá **Recargar catálogo**. Cuando las piezas tengan `ancho` y `alto`, el mapa las dibuja con esas medidas y la guía para IA las incluye.
-
----
+Para editarlo: **⋯ Más → Editar catálogo de piezas…**. Se copia a `%APPDATA%\DoomCompanion\catalogo.json` y se abre. Después de guardar, usá **Recargar catálogo**: la app revisa que las formas y las conexiones sean coherentes. Si cambiás el catálogo, volvé a exportar la guía para IA.
 
 ## 7. Archivos y datos
 

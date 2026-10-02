@@ -56,12 +56,13 @@ public sealed class MapaControl : Border
         if (motor is null) return;
 
         var areasVisibles = motor.Mapa.Areas.Where(a => motor.AreaRevelada(a.Id) || motor.AreaConocida(a.Id)).ToList();
-        var rects = areasVisibles.ToDictionary(a => a.Id, a => a.Tiles.Select(t => RectTile(t, motor.Catalogo)).ToList());
+        var piezas = areasVisibles.ToDictionary(a => a.Id, a => a.Tiles.Select(t => GeometriaTiles.Celdas(t, motor.Catalogo)).ToList());
         var puertas = motor.PuertasVisibles.ToList();
-        var rectsPuertas = UbicarPuertas(puertas, rects, motor);
+        var rectsPuertas = UbicarPuertas(puertas, piezas, motor);
 
         // Limites solo de lo visible: el tamaño del lienzo no puede delatar areas ocultas.
-        var todos = rects.Values.SelectMany(r => r).Concat(rectsPuertas.Values).ToList();
+        var todos = piezas.Values.SelectMany(l => l).SelectMany(l => l).Select(c => new Rect(c.X, c.Y, 1, 1))
+            .Concat(rectsPuertas.Values).ToList();
         if (todos.Count == 0) return;
         var minX = todos.Min(r => r.Left) - 1;
         var minY = todos.Min(r => r.Top) - 1;
@@ -82,35 +83,31 @@ public sealed class MapaControl : Border
             var despejada = motor.Estado.AreasDespejadas.Contains(area.Id);
             var seleccionada = area.Id == SeleccionId;
 
-            foreach (var r in rects[area.Id])
+            foreach (var celdas in piezas[area.Id])
             {
-                var forma = new Rectangle
+                var contorno = Contorno(celdas, P);
+                var forma = new Path
                 {
-                    Width = r.Width * Celda,
-                    Height = r.Height * Celda,
+                    Data = contorno,
                     Fill = conocida ? Brushes.Transparent : despejada ? FondoDespejada : FondoRevelada,
                     Stroke = seleccionada ? BordeSeleccion : BordeArea,
                     StrokeThickness = seleccionada ? 4 : 2,
-                    RadiusX = 3,
-                    RadiusY = 3,
+                    StrokeLineJoin = PenLineJoin.Round,
                     Cursor = Cursors.Hand,
                     Tag = area.Id,
                 };
                 if (conocida) forma.StrokeDashArray = [4, 3];
                 forma.MouseLeftButtonDown += (_, e) => { AreaClick?.Invoke(area.Id); e.Handled = true; };
-                Ubicar(forma, P(r.Left, r.Top));
                 _canvas.Children.Add(forma);
 
                 if (!conocida)
-                {
-                    var grilla = new Rectangle { Width = forma.Width, Height = forma.Height, Fill = Cuadricula, IsHitTestVisible = false };
-                    Ubicar(grilla, P(r.Left, r.Top));
-                    _canvas.Children.Add(grilla);
-                }
+                    _canvas.Children.Add(new Path { Data = contorno, Fill = Cuadricula, IsHitTestVisible = false });
             }
 
-            // Etiqueta en el tile mas grande del area.
-            var principal = rects[area.Id].OrderByDescending(r => r.Width * r.Height).First();
+            // Etiqueta en la pieza mas grande del area.
+            var principal = piezas[area.Id].OrderByDescending(l => l.Count).First();
+            var (pMinX, pMaxX) = (principal.Min(c => c.X), principal.Max(c => c.X) + 1);
+            var (pMinY, pMaxY) = (principal.Min(c => c.Y), principal.Max(c => c.Y) + 1);
             var vivos = motor.MonstruosDe(area.Id).Count(m => !m.Muerto);
             var etiqueta = new TextBlock
             {
@@ -120,12 +117,12 @@ public sealed class MapaControl : Border
                 FontWeight = FontWeights.SemiBold,
                 TextAlignment = TextAlignment.Center,
                 TextWrapping = TextWrapping.Wrap,
-                Width = Math.Max(principal.Width * Celda - 8, 60),
+                Width = Math.Max((pMaxX - pMinX) * Celda - 8, 90),
                 IsHitTestVisible = false,
                 Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 4, ShadowDepth = 0, Opacity = 1 },
             };
             etiqueta.Measure(new Size(etiqueta.Width, double.PositiveInfinity));
-            var centro = P(principal.Left + principal.Width / 2, principal.Top + principal.Height / 2);
+            var centro = P((pMinX + pMaxX) / 2.0, (pMinY + pMaxY) / 2.0);
             Ubicar(etiqueta, new Point(centro.X - etiqueta.Width / 2, centro.Y - etiqueta.DesiredSize.Height / 2));
             _canvas.Children.Add(etiqueta);
         }
@@ -152,18 +149,20 @@ public sealed class MapaControl : Border
         }
     }
 
-    /// <summary>Rectangulo en casillas que ocupa un tile, segun el catalogo o lo que diga el mapa.</summary>
-    private static Rect RectTile(ColocacionTile t, Catalogo catalogo)
+    /// <summary>Contorno de una pieza: union de sus casillas (las piezas pueden ser irregulares).</summary>
+    private static Geometry Contorno(IReadOnlyList<Celda> celdas, Func<double, double, Point> P)
     {
-        double ancho, alto;
-        if (catalogo.BuscarTile(t.Tipo) is { Ancho: int an, Alto: int al })
-            (ancho, alto) = t.Rotacion is 90 or 270 ? (al, an) : (an, al);
-        else
-            (ancho, alto) = (t.Ancho ?? 4, t.Alto ?? 4);
-        return new Rect(t.X, t.Y, ancho, alto);
+        Geometry? union = null;
+        foreach (var c in celdas)
+        {
+            var r = new RectangleGeometry(new Rect(P(c.X, c.Y), P(c.X + 1, c.Y + 1)));
+            union = union is null ? r : Geometry.Combine(union, r, GeometryCombineMode.Union, null);
+        }
+        union!.Freeze();
+        return union;
     }
 
-    private static Dictionary<string, Rect> UbicarPuertas(List<Puerta> puertas, Dictionary<string, List<Rect>> rects, MotorJuego motor)
+    private static Dictionary<string, Rect> UbicarPuertas(List<Puerta> puertas, Dictionary<string, List<IReadOnlyList<Celda>>> piezas, MotorJuego motor)
     {
         var resultado = new Dictionary<string, Rect>();
         var sinPosicionPorArea = new Dictionary<string, int>();
@@ -178,7 +177,8 @@ public sealed class MapaControl : Border
             }
             // Sin posicion (p.ej. teleportadores): icono dentro del area revelada de ese lado.
             var lado = motor.AreaRevelada(p.Desde) ? p.Desde : p.Hacia;
-            var baseRect = rects.TryGetValue(lado, out var rs) ? rs[0] : new Rect(0, 0, 1, 1);
+            var primera = piezas.TryGetValue(lado, out var ps) ? ps[0].MinBy(c => (c.Y, c.X)) : new Celda(0, 0);
+            var baseRect = new Rect(primera.X, primera.Y, 1, 1);
             var n = sinPosicionPorArea.GetValueOrDefault(lado);
             sinPosicionPorArea[lado] = n + 1;
             resultado[p.Id] = new Rect(baseRect.Left + 0.25 + n * 1.1, baseRect.Top + 0.25, 0.9, 0.9);

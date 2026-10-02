@@ -18,6 +18,24 @@ public sealed class Catalogo
     public MonstruoCatalogo? BuscarMonstruo(string id) => Monstruos.FirstOrDefault(m => m.Id == id);
     public ObjetoCatalogo? BuscarObjeto(string id) => Objetos.FirstOrDefault(o => o.Id == id);
     public FichaCatalogo? BuscarFicha(string id) => Fichas.FirstOrDefault(f => f.Id == id);
+
+    /// <summary>Errores de un catalogo editado a mano (ids repetidos, formas o conexiones mal escritas).</summary>
+    public List<string> Validar()
+    {
+        var errores = new List<string>();
+        void Repetidos(IEnumerable<string> ids, string que)
+        {
+            foreach (var g in ids.GroupBy(x => x).Where(g => g.Count() > 1))
+                errores.Add($"Id de {que} repetido: \"{g.Key}\".");
+        }
+        Repetidos(Tiles.Select(t => t.Id), "tile");
+        Repetidos(Monstruos.Select(m => m.Id), "monstruo");
+        Repetidos(Objetos.Select(o => o.Id), "objeto");
+        Repetidos(Fichas.Select(f => f.Id), "ficha");
+        foreach (var t in Tiles)
+            errores.AddRange(t.Validar().Select(e => $"Tile \"{t.Id}\": {e}"));
+        return errores;
+    }
 }
 
 public sealed class TileCatalogo
@@ -26,10 +44,76 @@ public sealed class TileCatalogo
     public string Nombre { get; set; } = "";
     public string Categoria { get; set; } = "";
     public int? Cantidad { get; set; }
+
+    /// <summary>
+    /// Forma en rotacion 0, fila por fila de arriba hacia abajo: '#' = casilla, '.' = vacio.
+    /// Rotacion 0 es la orientacion en que aparece la pieza en la hoja de referencia.
+    /// </summary>
+    public List<string>? Forma { get; set; }
+
+    /// <summary>Aberturas de 2 casillas por donde la pieza se une a otras (en rotacion 0).</summary>
+    public List<ConexionTile> Conexiones { get; set; } = [];
+
+    /// <summary>Medidas sin forma (solo para dibujar). Si hay forma, se ignoran.</summary>
     public int? Ancho { get; set; }
     public int? Alto { get; set; }
     public bool AVerificar { get; set; }
     public string? Nota { get; set; }
+
+    public bool TieneForma => Forma is { Count: > 0 };
+
+    public List<string> Validar()
+    {
+        var errores = new List<string>();
+        if (!TieneForma)
+        {
+            if (Conexiones.Count > 0) errores.Add("tiene conexiones pero no tiene forma.");
+            return errores;
+        }
+        var forma = Forma!;
+        var ancho = forma[0].Length;
+        if (forma.Any(f => f.Length != ancho)) errores.Add("todas las filas de la forma tienen que tener el mismo largo.");
+        if (forma.Any(f => f.Any(c => c is not ('#' or '.')))) errores.Add("la forma solo puede tener '#' (casilla) y '.' (vacío).");
+        if (!forma.Any(f => f.Contains('#'))) errores.Add("la forma no tiene ninguna casilla.");
+        if (errores.Count > 0) return errores;
+
+        bool Casilla(int col, int fila) =>
+            fila >= 0 && fila < forma.Count && col >= 0 && col < ancho && forma[fila][col] == '#';
+
+        foreach (var c in Conexiones)
+        {
+            var largoLado = c.Lado is Lado.Norte or Lado.Sur ? ancho : forma.Count;
+            if (c.Desde < 0 || c.Desde + 2 > largoLado)
+            {
+                errores.Add($"la conexión {c} se sale del lado (largo {largoLado}).");
+                continue;
+            }
+            var (c1, c2) = c.Lado switch
+            {
+                Lado.Norte => ((c.Desde, 0), (c.Desde + 1, 0)),
+                Lado.Sur => ((c.Desde, forma.Count - 1), (c.Desde + 1, forma.Count - 1)),
+                Lado.Oeste => ((0, c.Desde), (0, c.Desde + 1)),
+                _ => ((ancho - 1, c.Desde), (ancho - 1, c.Desde + 1)),
+            };
+            if (!Casilla(c1.Item1, c1.Item2) || !Casilla(c2.Item1, c2.Item2))
+                errores.Add($"la conexión {c} no coincide con casillas del borde de la forma.");
+        }
+        return errores;
+    }
+}
+
+public enum Lado { Norte, Este, Sur, Oeste }
+
+/// <summary>
+/// Abertura de 2 casillas sobre un lado del rectangulo de la pieza. <see cref="Desde"/> es la
+/// columna (lados norte/sur) o la fila (lados este/oeste) de la primera casilla, empezando en 0.
+/// </summary>
+public sealed class ConexionTile
+{
+    public Lado Lado { get; set; }
+    public int Desde { get; set; }
+
+    public override string ToString() => $"{Lado.ToString().ToLowerInvariant()}@{Desde}";
 }
 
 public sealed class PuertaCatalogo

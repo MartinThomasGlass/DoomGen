@@ -15,22 +15,40 @@
       "notasInvasor": "El área final tiene un Cyberdemon: usá las cartas de aparición para desgastar a los marines antes. Si los marines se demoran en la sala de bombas, recordales que existe la sobrecarga manual (evento) para abrir la compuerta de energía."
     },
     "areaInicial": "a1",
-    "condicionVictoria": { "tipo": "llegarAArea", "area": "a6" }
+    "condicionVictoria": {
+      "tipo": "llegarAArea",
+      "area": "a6"
+    }
   },
   "eventos": [
-    { "id": "ev-energia", "nombre": "Energía auxiliar restablecida", "descripcion": "Se activa al despejar la sala de control.", "manual": false },
-    { "id": "ev-sobrecarga", "nombre": "Sobrecarga manual de la compuerta", "descripcion": "Marcalo si un marine pasa un turno completo (acción Preparar) junto a la compuerta de energía en la sala de bombas.", "manual": true }
+    {
+      "id": "ev-energia",
+      "nombre": "Energía auxiliar restablecida",
+      "descripcion": "Se activa al despejar la sala de control.",
+      "manual": false
+    },
+    {
+      "id": "ev-sobrecarga",
+      "nombre": "Sobrecarga manual de la compuerta",
+      "descripcion": "Marcalo si un marine pasa un turno completo (acción Preparar) junto a la compuerta de energía en la sala de bombas.",
+      "manual": true
+    }
   ],
   "objetosMision": [
-    { "id": "disco-datos", "nombre": "Disco de datos del jefe de turno", "descripcion": "Necesario para la evacuación.", "ficha": "encuentro" }
+    {
+      "id": "disco-datos",
+      "nombre": "Disco de datos del jefe de turno",
+      "descripcion": "Necesario para la evacuación.",
+      "ficha": "encuentro"
+    }
   ],
   "areas": [
     {
       "id": "a1",
       "nombre": "Hangar de desembarco",
       "tiles": [
-        { "tipo": "sala", "x": 0, "y": 6, "rotacion": 0, "ancho": 6, "alto": 6 },
-        { "tipo": "pasillo", "x": 6, "y": 8, "rotacion": 90, "ancho": 4, "alto": 2 }
+        { "tipo": "sala-10x5-sur", "x": 10, "y": 9, "rotacion": 0 },
+        { "tipo": "callejon", "x": 14, "y": 14, "rotacion": 90 }
       ],
       "textos": {
         "entrar": "La rampa de la nave baja sobre un hangar a oscuras. Cajas de suministros volcadas, manchas de sangre que llevan hacia el pasillo del este. Algo se arrastra entre los contenedores.",
@@ -41,16 +59,43 @@
         { "tipo": "trite", "cantidad": 1 }
       ],
       "objetos": [
-        { "id": "o1", "tipo": "municion-balas", "cantidad": 2, "texto": "Dos cajas de cartuchos junto a la rampa." },
-        { "id": "o2", "tipo": "salud-botiquin", "cantidad": 1, "texto": "Un botiquín sellado sobre una caja." }
+        {
+          "id": "o1",
+          "tipo": "municion-balas",
+          "cantidad": 2,
+          "texto": "Dos cajas de cartuchos junto a la rampa."
+        },
+        {
+          "id": "o2",
+          "tipo": "salud-botiquin",
+          "cantidad": 1,
+          "texto": "Un botiquín sellado sobre una caja."
+        }
       ],
       "fichas": [
-        { "tipo": "obstaculo", "cantidad": 2, "nota": "Contenedores en el centro de la sala." },
-        { "tipo": "teleportador", "cantidad": 1, "nota": "En la esquina noroeste; está apagado." }
+        {
+          "tipo": "obstaculo",
+          "cantidad": 2,
+          "nota": "Contenedores en el centro de la sala."
+        },
+        {
+          "tipo": "teleportador",
+          "cantidad": 1,
+          "nota": "En la esquina noroeste; está apagado."
+        }
       ],
       "recompensas": [
-        { "tipo": "otorgarObjeto", "objeto": "arma-escopeta", "cantidad": 1, "texto": "El código abre el casillero del guardia: adentro hay una escopeta en perfecto estado." },
-        { "tipo": "revelarInfo", "area": "a3", "texto": "El plano marca una Sala de control al norte, detrás de la compuerta amarilla. Ahí debería estar el disco de datos." }
+        {
+          "tipo": "otorgarObjeto",
+          "objeto": "arma-escopeta",
+          "cantidad": 1,
+          "texto": "El código abre el casillero del guardia: adentro hay una escopeta en perfecto estado."
+        },
+        {
+          "tipo": "revelarInfo",
+          "area": "a3",
+          "texto": "El plano marca una Sala de control al norte, detrás de la compuerta amarilla. Ahí debería estar el disco de datos."
+        }
       ],
       "notasInvasor": "Primer área: dejá que los marines se acomoden."
     },
@@ -58,8 +103,8 @@
       "id": "a2",
       "nombre": "Pasillo de mantenimiento",
       "tiles": [
-        { "tipo": "pasillo", "x": 10, "y": 8, "rotacion": 90, "ancho": 6, "alto": 2 },
-        { "tipo": "curva", "x": 16, "y": 8, "rotacion": 180, "ancho": 2, "alto": 4 }
+        { "tipo": "pasillo-largo", "x": 20, "y": 10, "rotacion": 90 },
+        { "tipo": "curva-chica", "x": 26, "y": 9, "rotacion": 270 }
       ],
       "textos": {
         "entrar": "Un pasillo angosto lleno de tuberías que silban. El vapor no deja ver más allá de unos metros, pero se oyen garras sobre el metal.",
@@ -70,22 +115,45 @@
         { "tipo": "trite", "cantidad": 1 }
       ],
       "objetos": [
-        { "id": "o3", "tipo": "llave-amarilla", "cantidad": 1, "texto": "La tarjeta amarilla del técnico." },
-        { "id": "o4", "tipo": "municion-cohetes", "cantidad": 2, "texto": "Una caja de granadas de mantenimiento." }
+        {
+          "id": "o3",
+          "tipo": "llave-amarilla",
+          "cantidad": 1,
+          "texto": "La tarjeta amarilla del técnico."
+        },
+        {
+          "id": "o4",
+          "tipo": "municion-cohetes",
+          "cantidad": 2,
+          "texto": "Una caja de granadas de mantenimiento."
+        }
       ],
       "fichas": [
-        { "tipo": "obstaculo-danino", "cantidad": 1, "nota": "Fuga de vapor en la curva." }
+        {
+          "tipo": "obstaculo-danino",
+          "cantidad": 1,
+          "nota": "Fuga de vapor en la curva."
+        }
       ],
       "recompensas": [
-        { "tipo": "otorgarObjeto", "objeto": "armadura", "cantidad": 1, "texto": "Un chaleco antiexplosivos colgado en un gancho. Todavía sirve." }
+        {
+          "tipo": "otorgarObjeto",
+          "objeto": "armadura",
+          "cantidad": 1,
+          "texto": "Un chaleco antiexplosivos colgado en un gancho. Todavía sirve."
+        }
       ]
     },
     {
       "id": "a3",
       "nombre": "Sala de control",
       "tiles": [
-        { "tipo": "sala", "x": 0, "y": 0, "rotacion": 0, "ancho": 6, "alto": 6 },
-        { "tipo": "callejon", "x": 6, "y": 1, "rotacion": 90, "ancho": 4, "alto": 2 }
+        { "tipo": "sala-4x4", "x": 4, "y": 6, "rotacion": 0 },
+        { "tipo": "sala-5x5", "x": 5, "y": 10, "rotacion": 0 },
+        { "tipo": "callejon", "x": 3, "y": 7, "rotacion": 180 },
+        { "tipo": "callejon", "x": 8, "y": 7, "rotacion": 0 },
+        { "tipo": "callejon", "x": 8, "y": 15, "rotacion": 90 },
+        { "tipo": "callejon", "x": 4, "y": 13, "rotacion": 180 }
       ],
       "textos": {
         "entrar": "Pantallas rotas, sillas tiradas y un charco de sangre seca bajo la consola principal. Una figura alta y descarnada levanta los brazos envueltos en fuego.",
@@ -96,23 +164,46 @@
         { "tipo": "zombie", "cantidad": 2 }
       ],
       "objetos": [
-        { "id": "o5", "tipo": "disco-datos", "cantidad": 1, "texto": "El disco de datos del jefe de turno, en la consola." },
-        { "id": "o6", "tipo": "municion-celdas", "cantidad": 1, "texto": "Una celda de energía de repuesto." }
+        {
+          "id": "o5",
+          "tipo": "disco-datos",
+          "cantidad": 1,
+          "texto": "El disco de datos del jefe de turno, en la consola."
+        },
+        {
+          "id": "o6",
+          "tipo": "municion-celdas",
+          "cantidad": 1,
+          "texto": "Una celda de energía de repuesto."
+        }
       ],
       "fichas": [
-        { "tipo": "encuentro", "cantidad": 1, "nota": "Representa el disco de datos sobre la consola." }
+        {
+          "tipo": "encuentro",
+          "cantidad": 1,
+          "nota": "Representa el disco de datos sobre la consola."
+        }
       ],
       "recompensas": [
-        { "tipo": "activarEvento", "evento": "ev-energia", "texto": "La energía auxiliar vuelve: la compuerta de energía de la sala de bombas ya puede abrirse." },
-        { "tipo": "desbloquearPuerta", "puerta": "p4", "texto": "Desde la consola liberan a distancia la cerradura de la compuerta azul del este." }
+        {
+          "tipo": "activarEvento",
+          "evento": "ev-energia",
+          "texto": "La energía auxiliar vuelve: la compuerta de energía de la sala de bombas ya puede abrirse."
+        },
+        {
+          "tipo": "desbloquearPuerta",
+          "puerta": "p4",
+          "texto": "Desde la consola liberan a distancia la cerradura de la compuerta azul del este."
+        }
       ]
     },
     {
       "id": "a4",
       "nombre": "Sala de bombas",
       "tiles": [
-        { "tipo": "sala", "x": 12, "y": 12, "rotacion": 0, "ancho": 6, "alto": 5 },
-        { "tipo": "pasillo", "x": 18, "y": 6, "rotacion": 0, "ancho": 2, "alto": 6 }
+        { "tipo": "sala-4x4", "x": 26, "y": 5, "rotacion": 0 },
+        { "tipo": "callejon", "x": 25, "y": 6, "rotacion": 180 },
+        { "tipo": "callejon", "x": 30, "y": 6, "rotacion": 0 }
       ],
       "textos": {
         "entrar": "Enormes bombas de refrigeración laten como corazones. El suelo vibra. Un rugido sale de detrás de las turbinas y algo pesado se lanza hacia ustedes.",
@@ -123,25 +214,62 @@
         { "tipo": "imp", "cantidad": 2 }
       ],
       "objetos": [
-        { "id": "o7", "tipo": "llave-azul", "cantidad": 1, "texto": "Una tarjeta azul junto al casillero." },
-        { "id": "o8", "tipo": "arma-lanzacohetes", "cantidad": 1, "texto": "Un lanzacohetes en el casillero reventado." },
-        { "id": "o9", "tipo": "municion-cohetes", "cantidad": 1, "texto": "Una caja de cohetes." }
+        {
+          "id": "o7",
+          "tipo": "llave-azul",
+          "cantidad": 1,
+          "texto": "Una tarjeta azul junto al casillero."
+        },
+        {
+          "id": "o8",
+          "tipo": "arma-lanzacohetes",
+          "cantidad": 1,
+          "texto": "Un lanzacohetes en el casillero reventado."
+        },
+        {
+          "id": "o9",
+          "tipo": "municion-cohetes",
+          "cantidad": 1,
+          "texto": "Una caja de cohetes."
+        }
       ],
       "fichas": [
-        { "tipo": "teleportador", "cantidad": 1, "nota": "Par del teleportador del hangar." },
-        { "tipo": "obstaculo", "cantidad": 2, "nota": "Bombas de refrigeración." }
+        {
+          "tipo": "teleportador",
+          "cantidad": 1,
+          "nota": "Par del teleportador del hangar."
+        },
+        {
+          "tipo": "obstaculo",
+          "cantidad": 2,
+          "nota": "Bombas de refrigeración."
+        }
       ],
       "recompensas": [
-        { "tipo": "otorgarObjeto", "objeto": "salud-botiquin", "cantidad": 2, "texto": "Detrás de las bombas hay una estación médica con dos botiquines." },
-        { "tipo": "texto", "texto": "Un registro de mantenimiento indica que la compuerta de energía, al norte, se abre si vuelve la energía auxiliar o con una sobrecarga manual." }
+        {
+          "tipo": "otorgarObjeto",
+          "objeto": "salud-botiquin",
+          "cantidad": 2,
+          "texto": "Detrás de las bombas hay una estación médica con dos botiquines."
+        },
+        {
+          "tipo": "texto",
+          "texto": "Un registro de mantenimiento indica que la compuerta de energía, al norte, se abre si vuelve la energía auxiliar o con una sobrecarga manual."
+        }
       ]
     },
     {
       "id": "a5",
       "nombre": "Núcleo del reactor",
       "tiles": [
-        { "tipo": "sala", "x": 10, "y": 0, "rotacion": 0, "ancho": 10, "alto": 6 },
-        { "tipo": "interseccion", "x": 20, "y": 1, "rotacion": 0, "ancho": 1, "alto": 4 }
+        { "tipo": "sala-9x5", "x": 1, "y": 1, "rotacion": 180 },
+        { "tipo": "pasillo-largo", "x": 10, "y": 2, "rotacion": 90 },
+        { "tipo": "interseccion-cruz", "x": 16, "y": 1, "rotacion": 0 },
+        { "tipo": "pasillo-largo", "x": 20, "y": 2, "rotacion": 90 },
+        { "tipo": "interseccion-t", "x": 26, "y": 2, "rotacion": 0 },
+        { "tipo": "callejon", "x": 0, "y": 2, "rotacion": 180 },
+        { "tipo": "callejon", "x": 17, "y": 0, "rotacion": 270 },
+        { "tipo": "callejon", "x": 17, "y": 5, "rotacion": 90 }
       ],
       "textos": {
         "entrar": "El calor es insoportable. El núcleo brilla con un rojo enfermizo y, delante, una mole de carne con cañones en lugar de brazos gira lentamente hacia ustedes.",
@@ -153,18 +281,34 @@
         { "tipo": "zombie", "cantidad": 1 }
       ],
       "objetos": [
-        { "id": "o10", "tipo": "municion-balas", "cantidad": 2, "texto": "Cargadores tirados junto a un guardia muerto." },
-        { "id": "o11", "tipo": "adrenalina", "cantidad": 1, "texto": "Una jeringa de adrenalina en un botiquín de pared." }
+        {
+          "id": "o10",
+          "tipo": "municion-balas",
+          "cantidad": 2,
+          "texto": "Cargadores tirados junto a un guardia muerto."
+        },
+        {
+          "id": "o11",
+          "tipo": "adrenalina",
+          "cantidad": 1,
+          "texto": "Una jeringa de adrenalina en un botiquín de pared."
+        }
       ],
       "recompensas": [
-        { "tipo": "otorgarObjeto", "objeto": "llave-roja", "cantidad": 1, "texto": "Obtienen la tarjeta roja de la plataforma de evacuación." }
+        {
+          "tipo": "otorgarObjeto",
+          "objeto": "llave-roja",
+          "cantidad": 1,
+          "texto": "Obtienen la tarjeta roja de la plataforma de evacuación."
+        }
       ]
     },
     {
       "id": "a6",
       "nombre": "Plataforma de evacuación",
       "tiles": [
-        { "tipo": "sala", "x": 21, "y": 0, "rotacion": 0, "ancho": 6, "alto": 6 }
+        { "tipo": "sala-10x5", "x": 30, "y": 0, "rotacion": 0 },
+        { "tipo": "callejon", "x": 40, "y": 2, "rotacion": 0 }
       ],
       "textos": {
         "entrar": "La nave de evacuación está ahí, con los motores encendidos. Entre ustedes y la rampa, un Cyberdemon recarga su lanzacohetes.",
@@ -174,65 +318,118 @@
         { "tipo": "cyberdemon", "cantidad": 1 }
       ],
       "objetos": [
-        { "id": "o12", "tipo": "municion-celdas", "cantidad": 1, "texto": "Una celda de energía junto a la rampa." }
+        {
+          "id": "o12",
+          "tipo": "municion-celdas",
+          "cantidad": 1,
+          "texto": "Una celda de energía junto a la rampa."
+        }
       ],
       "recompensas": [
-        { "tipo": "texto", "texto": "El piloto les grita por radio: \"¡Suban ya!\". Cualquier marine que llegue a la rampa completa la misión." }
+        {
+          "tipo": "texto",
+          "texto": "El piloto les grita por radio: \"¡Suban ya!\". Cualquier marine que llegue a la rampa completa la misión."
+        }
       ]
     }
   ],
   "puertas": [
     {
-      "id": "p1", "desde": "a1", "hacia": "a2", "tipo": "normal",
-      "textos": { "abrir": "La puerta se abre con un chirrido. Vapor caliente sale al hangar." },
-      "posicion": { "x": 10, "y": 8, "orientacion": "vertical" }
+      "id": "p1",
+      "desde": "a1",
+      "hacia": "a2",
+      "tipo": "normal",
+      "textos": {
+        "abrir": "La puerta se abre con un chirrido. Vapor caliente sale al hangar."
+      },
+      "posicion": { "x": 20, "y": 10, "orientacion": "vertical" }
     },
     {
-      "id": "p2", "desde": "a1", "hacia": "a3", "tipo": "amarilla",
+      "id": "p2",
+      "desde": "a1",
+      "hacia": "a3",
+      "tipo": "amarilla",
       "textos": {
         "abrir": "La tarjeta amarilla destraba la compuerta. Del otro lado, pantallas que parpadean.",
         "bloqueada": "Compuerta de seguridad amarilla. El lector pide una tarjeta. Los técnicos de mantenimiento solían tener una."
       },
-      "posicion": { "x": 2, "y": 6, "orientacion": "horizontal" }
+      "posicion": { "x": 10, "y": 10, "orientacion": "vertical" }
     },
     {
-      "id": "p3", "desde": "a2", "hacia": "a4", "tipo": "paso",
-      "requisitos": { "areaDespejada": "a2" },
+      "id": "p3",
+      "desde": "a2",
+      "hacia": "a4",
+      "tipo": "paso",
+      "requisitos": {
+        "areaDespejada": "a2"
+      },
       "textos": {
         "abrir": "Bajan por la rampa de servicio hacia el ruido de las bombas.",
         "bloqueada": "La rampa es demasiado angosta para bajar mientras los imps sigan disparando desde el pasillo."
       },
-      "posicion": { "x": 16, "y": 12, "orientacion": "horizontal" }
+      "posicion": { "x": 27, "y": 9, "orientacion": "horizontal" }
     },
     {
-      "id": "p4", "desde": "a3", "hacia": "a5", "tipo": "azul",
+      "id": "p4",
+      "desde": "a3",
+      "hacia": "a5",
+      "tipo": "azul",
       "textos": {
         "abrir": "La compuerta azul se abre y una ola de calor les golpea la cara.",
         "bloqueada": "Compuerta de seguridad azul. Quizás haya otra forma de liberarla además de la tarjeta."
       },
-      "posicion": { "x": 10, "y": 1, "orientacion": "vertical" }
+      "posicion": { "x": 5, "y": 6, "orientacion": "horizontal" }
     },
     {
-      "id": "p5", "desde": "a4", "hacia": "a5", "tipo": "evento",
-      "requisitos": { "alguna": [ { "evento": "ev-energia" }, { "evento": "ev-sobrecarga" } ] },
+      "id": "p5",
+      "desde": "a4",
+      "hacia": "a5",
+      "tipo": "evento",
+      "requisitos": {
+        "alguna": [
+          {
+            "evento": "ev-energia"
+          },
+          {
+            "evento": "ev-sobrecarga"
+          }
+        ]
+      },
       "textos": {
         "abrir": "Los pistones de la compuerta de energía se retraen con un golpe seco.",
         "bloqueada": "La compuerta de energía no tiene corriente. Alguien tendría que restablecer la energía... o forzarla."
       },
-      "posicion": { "x": 18, "y": 6, "orientacion": "horizontal" }
+      "posicion": { "x": 27, "y": 5, "orientacion": "horizontal" }
     },
     {
-      "id": "p6", "desde": "a5", "hacia": "a6", "tipo": "roja",
-      "requisitos": { "todas": [ { "objeto": "disco-datos" }, { "areaDespejada": "a5" } ] },
+      "id": "p6",
+      "desde": "a5",
+      "hacia": "a6",
+      "tipo": "roja",
+      "requisitos": {
+        "todas": [
+          {
+            "objeto": "disco-datos"
+          },
+          {
+            "areaDespejada": "a5"
+          }
+        ]
+      },
       "textos": {
         "abrir": "La compuerta roja se abre. Se escucha el rugido de los motores de la nave... y algo mucho más grande.",
         "bloqueada": "Compuerta de seguridad roja. El protocolo de evacuación exige la tarjeta roja, el disco de datos y el reactor sin amenazas."
       },
-      "posicion": { "x": 21, "y": 2, "orientacion": "vertical" }
+      "posicion": { "x": 30, "y": 2, "orientacion": "vertical" }
     },
     {
-      "id": "p7", "desde": "a1", "hacia": "a4", "tipo": "teleportador",
-      "requisitos": { "puertaAbierta": "p3" },
+      "id": "p7",
+      "desde": "a1",
+      "hacia": "a4",
+      "tipo": "teleportador",
+      "requisitos": {
+        "puertaAbierta": "p3"
+      },
       "textos": {
         "abrir": "El teleportador se enciende con un zumbido verde. Ahora conecta el hangar con la sala de bombas.",
         "bloqueada": "El teleportador está apagado. Su otro extremo debe estar en una zona que todavía no alcanzaron."

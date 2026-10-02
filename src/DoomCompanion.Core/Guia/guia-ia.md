@@ -61,7 +61,7 @@ Un área es una zona que se revela de una sola vez. Puede ocupar **varias piezas
 |---|---|
 | `id` | Identificador único (`a1`, `a2`, ...). |
 | `nombre` | Nombre visible. |
-| `tiles[]` | Piezas a colocar: `tipo` (id de tile del catálogo), `x`, `y` (casilla de la esquina superior izquierda), `rotacion` (0, 90, 180 o 270), y opcionalmente `ancho`, `alto` (en casillas, ya rotado) y `nota`. |
+| `tiles[]` | Piezas físicas a colocar: `tipo` (id de pieza del catálogo), `x`, `y`, `rotacion` (0, 90, 180 o 270) y `nota` opcional. Ver 2.8. (`ancho`/`alto` solo hacen falta para piezas sin forma en el catálogo.) |
 | `textos.entrar` | Se lee al revelar el área. |
 | `textos.despejar` | Se lee al despejarla. |
 | `monstruos[]` | `{"tipo": id de monstruo, "cantidad": n}`. |
@@ -122,6 +122,19 @@ No existe la negación: un camino nunca se vuelve a cerrar. Una puerta sin `requ
 
 Usá solo minúsculas sin tildes, números, `-` y `_`, sin espacios. Convención: áreas `a1, a2...`, puertas `p1, p2...`, objetos colocados `o1, o2...` (únicos en todo el mapa), eventos `ev-nombre`.
 
+### 2.8 Plano: coordenadas, rotación y conexiones
+
+El mapa es una cuadrícula de casillas. `x` crece hacia la derecha (este) e `y` hacia abajo (sur). Las coordenadas no pueden ser negativas.
+
+- **Posición de una pieza:** `(x, y)` es la casilla superior izquierda del rectángulo que ocupa la pieza **ya rotada**.
+- **Rotación:** en grados, sentido horario. La rotación 0 es la orientación del catálogo. En la sección 3 tenés cada pieza dibujada en todas sus rotaciones, con sus medidas: no hace falta calcular nada.
+- **Conexiones:** cada pieza tiene aberturas de 2 casillas sobre su borde (marcadas `N`/`E`/`S`/`O` en los dibujos). Las piezas **solo** se unen por ahí: dos piezas quedan conectadas cuando una conexión de una cae exactamente sobre la misma línea que una conexión de la otra, en lados opuestos (este de una con oeste de la otra, o sur con norte).
+- **Línea de conexión:** cada conexión ocupa una línea de la cuadrícula de 2 casillas de largo. `horizontal (X, Y)` es la línea horizontal `y = Y` que va de `x = X` a `x = X+2`. `vertical (X, Y)` es la línea vertical `x = X` que va de `y = Y` a `y = Y+2`. La tabla de cada pieza da esa línea relativa a la posición `(x, y)` de la pieza.
+- **Puertas:** una puerta entre dos áreas va sobre la línea de conexión donde se unen una pieza de cada área, y su `posicion` es exactamente esa línea (`{"x": X, "y": Y, "orientacion": "horizontal" | "vertical"}`). Todas las puertas llevan `posicion`, menos los teleportadores.
+- **Dentro de un área:** sus piezas se unen entre sí por conexiones sin puerta.
+
+Ejemplo: una `sala-10x5-sur` en `(10, 9)` con rotación 0 tiene su conexión `este@1` en la línea `vertical (20, 10)`. Un `pasillo-largo` en `(20, 10)` con rotación 90 tiene `oeste@0` en `vertical (20, 10)`: las dos piezas se unen ahí, y si son de áreas distintas la puerta va en `{"x": 20, "y": 10, "orientacion": "vertical"}`.
+
 ---
 
 ## 3. Catálogo de piezas y fichas
@@ -180,11 +193,15 @@ Medí cada área con la **amenaza** de sus monstruos: la suma de `amenaza × can
 - Armadura, adrenalina y berserk: pocas, como recompensa de áreas difíciles.
 - No superes las cantidades de la caja (sumando objetos colocados y objetos otorgados por recompensa).
 
-### 4.6 Piezas físicas
-- No superes las puertas disponibles: puertas normales para `normal` y `evento`, y una sola puerta de seguridad de cada color.
+### 4.6 Piezas físicas y plano
+- No superes las piezas de la caja (cantidad de cada `tipo` de tile en todo el mapa), ni las puertas: puertas normales para `normal` y `evento`, y una sola puerta de seguridad de cada color.
 - Cada conexión `teleportador` usa 2 fichas de teleportador.
-- Las piezas de un mismo mapa no se superponen. Las áreas conectadas por una puerta se tocan justo en la línea donde está la puerta.
-- Mientras el catálogo no tenga medidas de las piezas, indicá `ancho` y `alto` aproximados de cada tile para que la app pueda dibujar el plano.
+- **Ninguna casilla puede estar ocupada por dos piezas.** Verificá las casillas de cada pieza con los dibujos de la sección 3.
+- Las piezas se unen **solo por conexiones** (ver 2.8). Las piezas de un área tienen que formar un bloque conectado.
+- Donde se unen piezas de dos áreas distintas tiene que haber una puerta (o un `paso`) con esa `posicion`. Si no, los marines pasarían sin abrir nada.
+- **Toda conexión que no se una con otra pieza se tapa con un `callejon`** (callejón sin salida) en la rotación que corresponda: no puede quedar ninguna abertura libre.
+- Pensá el plano en papel antes de escribir el JSON: ubicá primero el área inicial, después las áreas vecinas a través de sus conexiones, y al final los callejones.
+- Los pasillos y las curvas sirven para ajustar distancias: un pasillo corto suma 3 casillas, uno largo 6, y una sala 4×4 o una cruz pasan derecho sumando 4.
 
 ### 4.7 Textos
 - Todo en español, en segunda persona del plural ("ustedes"), con tono de horror de ciencia ficción, en 2 a 4 oraciones.
@@ -212,7 +229,7 @@ Medí cada área con la **amenaza** de sus monstruos: la suma de `amenaza × can
 
 ## 7. Ejemplo completo y válido
 
-Escenario de 6 áreas que usa todas las mecánicas: puertas de los 3 colores, compuerta por evento, paso, teleportador, requisitos `todas`/`alguna`/`puertaAbierta`, evento manual y no manual, objeto de misión y los cinco tipos de recompensa.
+Escenario de 6 áreas que usa todas las mecánicas: puertas de los 3 colores, compuerta por evento, paso, teleportador, requisitos `todas`/`alguna`/`puertaAbierta`, evento manual y no manual, objeto de misión y los cinco tipos de recompensa. El plano usa piezas reales: no hay superposiciones, todas las puertas están sobre conexiones y cada conexión sobrante está tapada con un callejón.
 
 ```json
 {{EJEMPLO}}
@@ -229,6 +246,8 @@ Escenario de 6 áreas que usa todas las mecánicas: puertas de los 3 colores, co
 - [ ] Cada área tiene al menos una recompensa.
 - [ ] La amenaza sigue la curva de la dificultad pedida y no se superan las figuras disponibles para la cantidad de marines.
 - [ ] Cada arma tiene su munición; no se superan las cantidades de la caja.
+- [ ] Ninguna pieza se superpone con otra; las piezas se unen solo por conexiones; toda conexión libre está tapada con un callejón.
+- [ ] Toda puerta (salvo teleportadores) tiene `posicion` sobre la conexión donde se unen sus dos áreas, y no hay áreas que se toquen por una conexión sin puerta.
 - [ ] Todos los textos están escritos y en español.
 
 ## 9. Cómo pedir un mapa

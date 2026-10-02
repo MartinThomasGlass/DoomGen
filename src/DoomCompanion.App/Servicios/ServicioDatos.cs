@@ -24,7 +24,11 @@ public sealed class ServicioDatos
         if (!File.Exists(RutaCatalogo)) return (Recursos.CatalogoPorDefecto(), null);
         try
         {
-            return (DoomCompanion.Core.Json.Leer<Catalogo>(File.ReadAllText(RutaCatalogo)), null);
+            var catalogo = DoomCompanion.Core.Json.Leer<Catalogo>(File.ReadAllText(RutaCatalogo));
+            var errores = catalogo.Validar();
+            if (errores.Count == 0) return (catalogo, null);
+            return (Recursos.CatalogoPorDefecto(),
+                $"Tu catálogo ({RutaCatalogo}) tiene errores:\n\n• {string.Join("\n• ", errores)}\n\nSe usa el catálogo que viene con la app.");
         }
         catch (Exception ex) when (ex is JsonException or IOException)
         {

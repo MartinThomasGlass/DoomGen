@@ -49,7 +49,8 @@ public class MotorJuegoTests
         var r = motor.Iniciar();
 
         Assert.Equal([TipoMensaje.Briefing, TipoMensaje.Objetivo, TipoMensaje.Entrada], r.Mensajes.Select(m => m.Tipo));
-        Assert.Contains("Pieza: Sala de 6×6 en (0, 6), rotación 0°", r.Mensajes[2].Detalle);
+        Assert.Contains("Pieza: Sala 10×5 con salida al sur en (10, 9), rotación 0°", r.Mensajes[2].Detalle);
+        Assert.Contains("Pieza: Callejón sin salida 1×2 en (14, 14), rotación 90°", r.Mensajes[2].Detalle);
         Assert.Contains("2 × Zombie", r.Mensajes[2].Detalle);
     }
 

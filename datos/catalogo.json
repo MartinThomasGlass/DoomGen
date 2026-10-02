@@ -1,12 +1,77 @@
 {
   "version": 1,
-  "nota": "Catálogo de componentes de Doom: The Boardgame (caja base 2004, sin expansión). Las cantidades marcadas con \"estimado\": true NO figuran desglosadas en el manual: el manual solo da el total del grupo y el desglose por tipo es una estimación balanceada. Los elementos con \"aVerificar\": true necesitan confirmarse con la caja real. Podés editar este archivo libremente.",
+  "nota": "Catálogo de componentes de Doom: The Boardgame (caja base 2004, sin expansión). Las cantidades marcadas con \"estimado\": true NO figuran desglosadas en el manual: el manual solo da el total del grupo y el desglose por tipo es una estimación balanceada. Los elementos con \"aVerificar\": true necesitan confirmarse con la caja real. Formas de las piezas: '#' = casilla, '.' = vacío, en rotación 0 (como aparecen en la hoja de referencia visual de la caja); las conexiones son aberturas de 2 casillas (lado + primera columna/fila, desde 0). Podés editar este archivo libremente.",
   "tiles": [
-    { "id": "sala", "nombre": "Sala", "categoria": "sala", "cantidad": 12, "ancho": null, "alto": null, "aVerificar": true, "nota": "Formas y tamaños individuales pendientes de cargar." },
-    { "id": "pasillo", "nombre": "Pasillo", "categoria": "pasillo", "cantidad": 14, "ancho": null, "alto": null, "aVerificar": true },
-    { "id": "curva", "nombre": "Curva", "categoria": "curva", "cantidad": 5, "ancho": null, "alto": null, "aVerificar": true },
-    { "id": "interseccion", "nombre": "Intersección", "categoria": "interseccion", "cantidad": 6, "ancho": null, "alto": null, "aVerificar": true },
-    { "id": "callejon", "nombre": "Callejón sin salida", "categoria": "callejon", "cantidad": 21, "ancho": null, "alto": null, "aVerificar": true }
+    {
+      "id": "sala-10x9", "nombre": "Sala grande 10×9", "categoria": "sala", "cantidad": 1,
+      "forma": ["##########", "##########", "##########", "##########", "##########", "##########", "##########", "##########", "##########"],
+      "conexiones": [{ "lado": "norte", "desde": 2 }, { "lado": "norte", "desde": 5 }, { "lado": "oeste", "desde": 3 }, { "lado": "este", "desde": 4 }, { "lado": "sur", "desde": 1 }, { "lado": "sur", "desde": 8 }],
+      "aVerificar": true,
+      "nota": "Sala más grande de la caja. Las conexiones se leyeron de la hoja de referencia: verificalas con la pieza."
+    },
+    {
+      "id": "sala-10x5-sur", "nombre": "Sala 10×5 con salida al sur", "categoria": "sala", "cantidad": 1,
+      "forma": ["##########", "##########", "##########", "##########", "##########"],
+      "conexiones": [{ "lado": "oeste", "desde": 1 }, { "lado": "este", "desde": 1 }, { "lado": "sur", "desde": 4 }]
+    },
+    {
+      "id": "sala-10x5", "nombre": "Sala 10×5 de paso", "categoria": "sala", "cantidad": 1,
+      "forma": ["##########", "##########", "##########", "##########", "##########"],
+      "conexiones": [{ "lado": "oeste", "desde": 2 }, { "lado": "este", "desde": 2 }],
+      "nota": "La de franjas a lo largo de los bordes."
+    },
+    {
+      "id": "sala-9x5", "nombre": "Sala 9×5 con tres salidas", "categoria": "sala", "cantidad": 1,
+      "forma": ["...##....", ".#######.", "#########", "#########", ".#######."],
+      "conexiones": [{ "lado": "norte", "desde": 3 }, { "lado": "oeste", "desde": 2 }, { "lado": "este", "desde": 2 }]
+    },
+    {
+      "id": "sala-5x5", "nombre": "Sala 5×5 de cuatro salidas", "categoria": "sala", "cantidad": 3,
+      "forma": ["#####", "#####", "#####", "#####", "#####"],
+      "conexiones": [{ "lado": "norte", "desde": 0 }, { "lado": "este", "desde": 0 }, { "lado": "sur", "desde": 3 }, { "lado": "oeste", "desde": 3 }],
+      "nota": "Las salidas giran como un molinete."
+    },
+    {
+      "id": "sala-4x4", "nombre": "Sala 4×4", "categoria": "sala", "cantidad": 5,
+      "forma": ["####", "####", "####", "####"],
+      "conexiones": [{ "lado": "norte", "desde": 1 }, { "lado": "este", "desde": 1 }, { "lado": "sur", "desde": 1 }, { "lado": "oeste", "desde": 1 }]
+    },
+    {
+      "id": "interseccion-cruz", "nombre": "Intersección en cruz 4×4", "categoria": "interseccion", "cantidad": 2,
+      "forma": [".##.", "####", "####", ".##."],
+      "conexiones": [{ "lado": "norte", "desde": 1 }, { "lado": "este", "desde": 1 }, { "lado": "sur", "desde": 1 }, { "lado": "oeste", "desde": 1 }]
+    },
+    {
+      "id": "interseccion-t", "nombre": "Intersección en T 4×3", "categoria": "interseccion", "cantidad": 4,
+      "forma": ["####", "####", ".##."],
+      "conexiones": [{ "lado": "oeste", "desde": 0 }, { "lado": "este", "desde": 0 }, { "lado": "sur", "desde": 1 }]
+    },
+    {
+      "id": "curva-grande", "nombre": "Curva grande 4×4 (en L)", "categoria": "curva", "cantidad": 2,
+      "forma": ["####", "####", "##..", "##.."],
+      "conexiones": [{ "lado": "este", "desde": 0 }, { "lado": "sur", "desde": 0 }]
+    },
+    {
+      "id": "curva-chica", "nombre": "Curva chica 3×3", "categoria": "curva", "cantidad": 3,
+      "forma": ["##.", "###", "###"],
+      "conexiones": [{ "lado": "norte", "desde": 0 }, { "lado": "este", "desde": 1 }]
+    },
+    {
+      "id": "pasillo-corto", "nombre": "Pasillo corto 2×3", "categoria": "pasillo", "cantidad": 10,
+      "forma": ["##", "##", "##"],
+      "conexiones": [{ "lado": "norte", "desde": 0 }, { "lado": "sur", "desde": 0 }]
+    },
+    {
+      "id": "pasillo-largo", "nombre": "Pasillo largo 2×6", "categoria": "pasillo", "cantidad": 4,
+      "forma": ["##", "##", "##", "##", "##", "##"],
+      "conexiones": [{ "lado": "norte", "desde": 0 }, { "lado": "sur", "desde": 0 }]
+    },
+    {
+      "id": "callejon", "nombre": "Callejón sin salida 1×2", "categoria": "callejon", "cantidad": 21,
+      "forma": ["#", "#"],
+      "conexiones": [{ "lado": "oeste", "desde": 0 }],
+      "nota": "Tapa una conexión que no se usa. El manual dice 21; la hoja de referencia visual muestra 22."
+    }
   ],
   "puertas": [
     { "tipo": "normal", "nombre": "Puerta normal", "cantidad": 11, "nota": "También se usan para las puertas de tipo \"evento\"." },
