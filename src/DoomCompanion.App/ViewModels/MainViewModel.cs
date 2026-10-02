@@ -47,9 +47,9 @@ public sealed partial class MainViewModel : ObservableObject
 
     // ------------------------------------------------------------------ Estado observable
 
-    [ObservableProperty] private bool _hayPartida;
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(TituloVentana))] private bool _hayPartida;
     [ObservableProperty] private bool _hayAutoguardado;
-    [ObservableProperty] private string _titulo = "Doom Companion";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(TituloVentana))] private string _titulo = "Doom Companion";
     [ObservableProperty] private string _subtitulo = "";
     [ObservableProperty] private IReadOnlyList<AreaVM> _areas = [];
     [ObservableProperty] private AreaVM? _areaSeleccionada;
@@ -72,6 +72,8 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty] private string? _resultadoTexto;
 
     public bool LectorVisible => MensajeActual is not null;
+
+    public string TituloVentana => HayPartida ? $"{Titulo} — Doom Companion" : "Doom Companion";
 
     partial void OnMensajeActualChanged(Mensaje? value) => OnPropertyChanged(nameof(LectorVisible));
 
