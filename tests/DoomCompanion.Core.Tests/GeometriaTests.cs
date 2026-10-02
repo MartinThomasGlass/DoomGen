@@ -74,6 +74,22 @@ public class GeometriaTests
     }
 
     [Fact]
+    public void LasParedesDejanAbiertasLasConexiones()
+    {
+        // Callejon en rotacion 0: 1×2 abierto al oeste.
+        var tile = new ColocacionTile { Tipo = "callejon", X = 3, Y = 4, Rotacion = 0 };
+
+        var paredes = GeometriaTiles.Paredes(tile, CatalogoBase);
+
+        Assert.Equal(4, paredes.Count);
+        Assert.Contains(new Segmento(3, 4, 4, 4), paredes);   // norte
+        Assert.Contains(new Segmento(3, 6, 4, 6), paredes);   // sur
+        Assert.Contains(new Segmento(4, 4, 4, 5), paredes);   // este
+        Assert.DoesNotContain(new Segmento(3, 4, 3, 5), paredes); // oeste: conexion
+        Assert.Equal([new Celda(3, 4), new Celda(3, 5)], GeometriaTiles.CeldasDeConexion(tile, CatalogoBase));
+    }
+
+    [Fact]
     public void CatalogoConFormaMalEscritaSeInforma()
     {
         var t = new TileCatalogo

@@ -2,6 +2,9 @@ namespace DoomCompanion.Core.Modelo;
 
 public readonly record struct Celda(int X, int Y);
 
+/// <summary>Tramo de borde de casilla, de (X1, Y1) a (X2, Y2) en coordenadas de la cuadricula.</summary>
+public readonly record struct Segmento(int X1, int Y1, int X2, int Y2);
+
 /// <summary>
 /// Linea de la cuadricula de 2 casillas de largo donde se unen dos piezas (y donde va una
 /// puerta). Horizontal: sobre la linea Y, de X a X+2. Vertical: sobre la linea X, de Y a Y+2.
@@ -114,6 +117,53 @@ public static class GeometriaTiles
                 rect.Add(new Celda(t.X + c, t.Y + f));
         return rect;
     }
+
+    /// <summary>
+    /// Tramos de pared de la pieza (bordes de casilla de 1 de largo que dan afuera), sin los
+    /// tramos que ocupan sus conexiones: ahi la pieza queda abierta.
+    /// </summary>
+    public static IReadOnlyList<Segmento> Paredes(ColocacionTile t, Catalogo catalogo)
+    {
+        var celdas = Celdas(t, catalogo).ToHashSet();
+        var aberturas = new HashSet<Segmento>();
+        foreach (var (_, l) in Conexiones(t, catalogo))
+        {
+            if (l.Orientacion == Orientacion.Horizontal)
+            {
+                aberturas.Add(new Segmento(l.X, l.Y, l.X + 1, l.Y));
+                aberturas.Add(new Segmento(l.X + 1, l.Y, l.X + 2, l.Y));
+            }
+            else
+            {
+                aberturas.Add(new Segmento(l.X, l.Y, l.X, l.Y + 1));
+                aberturas.Add(new Segmento(l.X, l.Y + 1, l.X, l.Y + 2));
+            }
+        }
+
+        var paredes = new List<Segmento>();
+        void Agregar(Segmento s)
+        {
+            if (!aberturas.Contains(s)) paredes.Add(s);
+        }
+        foreach (var c in celdas)
+        {
+            if (!celdas.Contains(c with { Y = c.Y - 1 })) Agregar(new Segmento(c.X, c.Y, c.X + 1, c.Y));
+            if (!celdas.Contains(c with { Y = c.Y + 1 })) Agregar(new Segmento(c.X, c.Y + 1, c.X + 1, c.Y + 1));
+            if (!celdas.Contains(c with { X = c.X - 1 })) Agregar(new Segmento(c.X, c.Y, c.X, c.Y + 1));
+            if (!celdas.Contains(c with { X = c.X + 1 })) Agregar(new Segmento(c.X + 1, c.Y, c.X + 1, c.Y + 1));
+        }
+        return paredes;
+    }
+
+    /// <summary>Casillas de la pieza que forman parte de una conexion (las del borde abierto).</summary>
+    public static IReadOnlyList<Celda> CeldasDeConexion(ColocacionTile t, Catalogo catalogo) =>
+        Conexiones(t, catalogo).SelectMany(x => x.Lado switch
+        {
+            Lado.Norte => new[] { new Celda(x.Linea.X, x.Linea.Y), new Celda(x.Linea.X + 1, x.Linea.Y) },
+            Lado.Sur => [new Celda(x.Linea.X, x.Linea.Y - 1), new Celda(x.Linea.X + 1, x.Linea.Y - 1)],
+            Lado.Oeste => [new Celda(x.Linea.X, x.Linea.Y), new Celda(x.Linea.X, x.Linea.Y + 1)],
+            _ => [new Celda(x.Linea.X - 1, x.Linea.Y), new Celda(x.Linea.X - 1, x.Linea.Y + 1)],
+        }).Distinct().ToList();
 
     /// <summary>Conexiones de la pieza en coordenadas del mapa (vacio si no tiene forma).</summary>
     public static IReadOnlyList<(Lado Lado, LineaConexion Linea)> Conexiones(ColocacionTile t, Catalogo catalogo)
