@@ -1,0 +1,32 @@
+<Window x:Class="DoomCompanion.App.Vistas.ResultadoImportacionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Validación del mapa" Width="900" SizeToContent="Height" MaxHeight="820"
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResizeWithGrip" ShowInTaskbar="False"
+        Background="{StaticResource Fondo}" FontFamily="Segoe UI">
+    <DockPanel Margin="24">
+        <TextBlock x:Name="Resumen" DockPanel.Dock="Top" FontSize="30" FontWeight="Bold" />
+        <TextBlock x:Name="Explicacion" DockPanel.Dock="Top" Style="{StaticResource Suave}" FontSize="16" Margin="0,8,0,12" />
+
+        <DockPanel DockPanel.Dock="Bottom" Margin="0,16,0,0" LastChildFill="False">
+            <Button x:Name="BotonJugar" DockPanel.Dock="Right" Content="▶ Jugar" Style="{StaticResource BotonPrimario}" FontSize="18" Padding="22,8" Click="Jugar" IsDefault="True" />
+            <Button x:Name="BotonCerrar" DockPanel.Dock="Right" Content="Cancelar" FontSize="16" Click="Cerrar" IsCancel="True" />
+            <Button x:Name="BotonDetalle" DockPanel.Dock="Left" Content="⚠ Ver detalle (spoiler)" FontSize="16" Click="VerDetalle" />
+            <Button x:Name="BotonCopiar" DockPanel.Dock="Left" Content="📋 Copiar errores" FontSize="16" Click="Copiar" Visibility="Collapsed"
+                    ToolTip="Copia la lista para pegársela a la IA y pedirle que corrija el mapa" />
+        </DockPanel>
+
+        <Border x:Name="PanelDetalle" Background="{StaticResource Panel}" CornerRadius="6" Padding="4" Visibility="Collapsed" MinHeight="120">
+            <ListBox x:Name="Lista" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="4,6">
+                            <TextBlock Text="{Binding Encabezado}" FontWeight="SemiBold" FontSize="14" Foreground="{Binding Color}" />
+                            <TextBlock Text="{Binding Mensaje}" FontSize="16" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+    </DockPanel>
+</Window>

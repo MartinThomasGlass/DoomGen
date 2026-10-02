@@ -1,4 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <!-- Main propio para inicializar Velopack antes que WPF. -->
+    <StartupObject>DoomCompanion.App.Program</StartupObject>
+    <AssemblyName>DoomCompanion</AssemblyName>
+    <Product>Doom Companion</Product>
+    <Version>1.0.0</Version>
+    <ApplicationIcon>Recursos\icono.ico</ApplicationIcon>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DoomCompanion.Core\DoomCompanion.Core.csproj" />
@@ -9,12 +23,8 @@
     <PackageReference Include="Velopack" Version="1.2.161" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="Recursos\icono.ico" />
+  </ItemGroup>
 
 </Project>
