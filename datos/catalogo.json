@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "nota": "Catálogo de componentes de Doom: The Boardgame (caja base 2004, sin expansión). Las cantidades marcadas con \"estimado\": true NO figuran desglosadas en el manual: el manual solo da el total del grupo y el desglose por tipo es una estimación balanceada. Los elementos con \"aVerificar\": true necesitan confirmarse con la caja real. Podés editar este archivo libremente.",
+  "tiles": [
+    { "id": "sala", "nombre": "Sala", "categoria": "sala", "cantidad": 12, "ancho": null, "alto": null, "aVerificar": true, "nota": "Formas y tamaños individuales pendientes de cargar." },
+    { "id": "pasillo", "nombre": "Pasillo", "categoria": "pasillo", "cantidad": 14, "ancho": null, "alto": null, "aVerificar": true },
+    { "id": "curva", "nombre": "Curva", "categoria": "curva", "cantidad": 5, "ancho": null, "alto": null, "aVerificar": true },
+    { "id": "interseccion", "nombre": "Intersección", "categoria": "interseccion", "cantidad": 6, "ancho": null, "alto": null, "aVerificar": true },
+    { "id": "callejon", "nombre": "Callejón sin salida", "categoria": "callejon", "cantidad": 21, "ancho": null, "alto": null, "aVerificar": true }
+  ],
+  "puertas": [
+    { "tipo": "normal", "nombre": "Puerta normal", "cantidad": 11, "nota": "También se usan para las puertas de tipo \"evento\"." },
+    { "tipo": "roja", "nombre": "Puerta de seguridad roja", "cantidad": 1, "aVerificar": true, "nota": "El manual indica 3 puertas de seguridad; se asume una por color." },
+    { "tipo": "azul", "nombre": "Puerta de seguridad azul", "cantidad": 1, "aVerificar": true },
+    { "tipo": "amarilla", "nombre": "Puerta de seguridad amarilla", "cantidad": 1, "aVerificar": true }
+  ],
+  "monstruos": [
+    { "id": "trite", "nombre": "Trite", "cantidad": 12, "casillas": 1, "amenaza": 1, "nota": "Rápido, usa ductos." },
+    { "id": "zombie", "nombre": "Zombie", "cantidad": 12, "casillas": 1, "amenaza": 1, "nota": "Lento y numeroso." },
+    { "id": "imp", "nombre": "Imp", "cantidad": 12, "casillas": 1, "amenaza": 2, "nota": "Ataca a distancia con bolas de fuego." },
+    { "id": "demon", "nombre": "Demon", "cantidad": 6, "casillas": 2, "amenaza": 3, "nota": "Cuerpo a cuerpo, ocupa 2 casillas." },
+    { "id": "archvile", "nombre": "Archvile", "cantidad": 6, "casillas": 1, "amenaza": 4, "nota": "Fuego a gran distancia." },
+    { "id": "mancubus", "nombre": "Mancubus", "cantidad": 6, "casillas": 4, "amenaza": 5, "nota": "Lento, mucha potencia de fuego, ocupa 4 casillas." },
+    { "id": "hellknight", "nombre": "Hell Knight", "cantidad": 6, "casillas": 4, "amenaza": 5, "nota": "El más fuerte cuerpo a cuerpo, ocupa 4 casillas." },
+    { "id": "cyberdemon", "nombre": "Cyberdemon", "cantidad": 3, "casillas": 4, "amenaza": 9, "nota": "Jefe final. Uno por color." }
+  ],
+  "objetos": [
+    { "id": "llave-roja", "nombre": "Llave roja", "categoria": "llave", "cantidad": 1, "grupo": "llaves" },
+    { "id": "llave-azul", "nombre": "Llave azul", "categoria": "llave", "cantidad": 1, "grupo": "llaves" },
+    { "id": "llave-amarilla", "nombre": "Llave amarilla", "categoria": "llave", "cantidad": 1, "grupo": "llaves" },
+
+    { "id": "arma-motosierra", "nombre": "Motosierra", "categoria": "arma", "cantidad": 3, "estimado": true, "grupo": "armas", "nota": "No usa munición." },
+    { "id": "arma-escopeta", "nombre": "Escopeta", "categoria": "arma", "cantidad": 5, "estimado": true, "grupo": "armas", "municion": "municion-balas" },
+    { "id": "arma-ametralladora", "nombre": "Ametralladora", "categoria": "arma", "cantidad": 4, "estimado": true, "grupo": "armas", "municion": "municion-balas" },
+    { "id": "arma-chaingun", "nombre": "Chaingun", "categoria": "arma", "cantidad": 3, "estimado": true, "grupo": "armas", "municion": "municion-balas" },
+    { "id": "arma-lanzacohetes", "nombre": "Lanzacohetes", "categoria": "arma", "cantidad": 3, "estimado": true, "grupo": "armas", "municion": "municion-cohetes" },
+    { "id": "arma-plasma", "nombre": "Rifle de plasma", "categoria": "arma", "cantidad": 2, "estimado": true, "grupo": "armas", "municion": "municion-celdas" },
+    { "id": "arma-bfg", "nombre": "BFG", "categoria": "arma", "cantidad": 1, "estimado": true, "grupo": "armas", "municion": "municion-celdas" },
+
+    { "id": "municion-balas", "nombre": "Cartuchos/balas", "categoria": "municion", "cantidad": 22, "estimado": true, "grupo": "municion", "nota": "Pistola, escopeta, ametralladora y chaingun." },
+    { "id": "municion-cohetes", "nombre": "Cohetes/granadas", "categoria": "municion", "cantidad": 14, "estimado": true, "grupo": "municion", "nota": "Granadas y lanzacohetes." },
+    { "id": "municion-celdas", "nombre": "Celdas de energía", "categoria": "municion", "cantidad": 9, "estimado": true, "grupo": "municion", "nota": "Rifle de plasma y BFG." },
+
+    { "id": "salud-botiquin", "nombre": "Botiquín", "categoria": "salud", "cantidad": 12, "grupo": "salud", "nota": "Recupera hasta 3 heridas." },
+
+    { "id": "armadura", "nombre": "Armadura", "categoria": "armadura", "cantidad": 5, "estimado": true, "grupo": "otros", "nota": "Ficha de armadura como equipo." },
+    { "id": "adrenalina", "nombre": "Adrenalina", "categoria": "otro", "cantidad": 5, "estimado": true, "grupo": "otros", "nota": "+4 de movimiento en un turno." },
+    { "id": "berserk", "nombre": "Berserk", "categoria": "otro", "cantidad": 5, "estimado": true, "grupo": "otros", "nota": "Los golpes de puño matan al instante durante 2 turnos." }
+  ],
+  "gruposEquipo": [
+    { "id": "llaves", "nombre": "Fichas de llave", "total": 3 },
+    { "id": "armas", "nombre": "Fichas de arma", "total": 21 },
+    { "id": "municion", "nombre": "Fichas de munición", "total": 45 },
+    { "id": "salud", "nombre": "Fichas de salud", "total": 12 },
+    { "id": "otros", "nombre": "Otras fichas de equipo", "total": 15 }
+  ],
+  "fichas": [
+    { "id": "obstaculo", "nombre": "Obstáculo", "cantidad": 18, "nota": "Varias fichas son de doble cara (obstáculo/ducto, obstáculo/teleportador, etc.)." },
+    { "id": "encuentro", "nombre": "Encuentro", "cantidad": 6, "nota": "Sirve también para representar objetos de misión." },
+    { "id": "teleportador", "nombre": "Teleportador", "cantidad": 6, "nota": "Se usan de a pares del mismo color." },
+    { "id": "ducto", "nombre": "Ducto", "cantidad": null, "aVerificar": true, "nota": "Dorso de otras fichas; cantidad a verificar." },
+    { "id": "barril", "nombre": "Barril explosivo", "cantidad": null, "aVerificar": true, "nota": "Dorso de otras fichas; cantidad a verificar." },
+    { "id": "obstaculo-danino", "nombre": "Obstáculo dañino (residuos/llamas)", "cantidad": null, "aVerificar": true, "nota": "Dorso de otras fichas; cantidad a verificar." }
+  ],
+  "preparacionMarines": [
+    { "marines": 1, "municion": 4, "heridas": 10, "armadura": 2, "cartas": 3 },
+    { "marines": 2, "municion": 3, "heridas": 9, "armadura": 2, "cartas": 3 },
+    { "marines": 3, "municion": 2, "heridas": 8, "armadura": 2, "cartas": 2 }
+  ],
+  "armasBasicas": "Todo marine tiene siempre puño, pistola (usa balas) y granadas (usan cohetes/granadas); no hay fichas para estas armas."
+}

@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DoomCompanion.App/DoomCompanion.App.csproj" />
+    <Project Path="src/DoomCompanion.Core/DoomCompanion.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DoomCompanion.Core.Tests/DoomCompanion.Core.Tests.csproj" />
+  </Folder>
+</Solution>

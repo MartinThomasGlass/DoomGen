@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JsonSchema.Net" Version="9.4.0" />
+  </ItemGroup>
+
+  <!-- Esquema, catalogo y ejemplo viven en /datos y se embeben en la DLL. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\datos\esquema-mapa.v1.json" LogicalName="DoomCompanion.esquema-mapa.v1.json" />
+    <EmbeddedResource Include="..\..\datos\catalogo.json" LogicalName="DoomCompanion.catalogo.json" />
+    <EmbeddedResource Include="..\..\datos\ejemplos\escenario-ejemplo.json" LogicalName="DoomCompanion.escenario-ejemplo.json" />
+    <EmbeddedResource Include="Guia\*.md" LogicalName="DoomCompanion.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DoomCompanion.Core.Tests" />
+  </ItemGroup>
+
+</Project>

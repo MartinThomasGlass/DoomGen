@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://doom-companion.local/esquema-mapa.v1.json",
+  "title": "Mapa de escenario para Doom Companion (version 1)",
+  "type": "object",
+  "required": ["version", "escenario", "areas", "puertas"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "const": 1, "description": "Version del formato. Siempre 1." },
+    "escenario": { "$ref": "#/$defs/escenario" },
+    "eventos": {
+      "type": "array",
+      "description": "Eventos que pueden activarse durante la partida (manualmente o por recompensa).",
+      "items": { "$ref": "#/$defs/evento" }
+    },
+    "objetosMision": {
+      "type": "array",
+      "description": "Objetos propios del escenario que no estan en el catalogo (discos de datos, muestras, etc.).",
+      "items": { "$ref": "#/$defs/objetoMision" }
+    },
+    "areas": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/area" }
+    },
+    "puertas": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/puerta" }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$",
+      "description": "Identificador: minusculas, numeros, guion y guion bajo."
+    },
+    "texto": { "type": "string", "minLength": 1 },
+    "escenario": {
+      "type": "object",
+      "required": ["id", "titulo", "dificultad", "marines", "textos", "areaInicial", "condicionVictoria"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "titulo": { "$ref": "#/$defs/texto" },
+        "dificultad": { "enum": ["facil", "media", "dificil", "pesadilla"] },
+        "marines": { "type": "integer", "minimum": 1, "maximum": 3, "description": "Cantidad de jugadores marine (el invasor no cuenta)." },
+        "ambientacion": { "type": "string" },
+        "autor": { "type": "string" },
+        "textos": {
+          "type": "object",
+          "required": ["introduccion", "objetivos", "victoria", "derrota"],
+          "additionalProperties": false,
+          "properties": {
+            "introduccion": { "$ref": "#/$defs/texto" },
+            "objetivos": { "$ref": "#/$defs/texto" },
+            "victoria": { "$ref": "#/$defs/texto" },
+            "derrota": { "$ref": "#/$defs/texto" },
+            "notasInvasor": { "type": "string" }
+          }
+        },
+        "areaInicial": { "$ref": "#/$defs/id" },
+        "condicionVictoria": { "$ref": "#/$defs/condicionVictoria" }
+      }
+    },
+    "condicionVictoria": {
+      "type": "object",
+      "required": ["tipo"],
+      "additionalProperties": false,
+      "properties": {
+        "tipo": { "enum": ["llegarAArea", "despejarArea", "evento"] },
+        "area": { "$ref": "#/$defs/id" },
+        "evento": { "$ref": "#/$defs/id" }
+      },
+      "allOf": [
+        { "if": { "properties": { "tipo": { "enum": ["llegarAArea", "despejarArea"] } } }, "then": { "required": ["area"] } },
+        { "if": { "properties": { "tipo": { "const": "evento" } } }, "then": { "required": ["evento"] } }
+      ]
+    },
+    "evento": {
+      "type": "object",
+      "required": ["id", "nombre"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "nombre": { "$ref": "#/$defs/texto" },
+        "descripcion": { "type": "string" },
+        "manual": { "type": "boolean", "default": true, "description": "true: lo marca el jugador desde la app. false: solo se activa con una recompensa." }
+      }
+    },
+    "objetoMision": {
+      "type": "object",
+      "required": ["id", "nombre"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "nombre": { "$ref": "#/$defs/texto" },
+        "descripcion": { "type": "string" },
+        "ficha": { "type": "string", "description": "Ficha fisica que lo representa (por ejemplo \"encuentro\")." }
+      }
+    },
+    "area": {
+      "type": "object",
+      "required": ["id", "nombre", "tiles", "textos"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "nombre": { "$ref": "#/$defs/texto" },
+        "tiles": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/tile" } },
+        "textos": {
+          "type": "object",
+          "required": ["entrar", "despejar"],
+          "additionalProperties": false,
+          "properties": {
+            "entrar": { "$ref": "#/$defs/texto" },
+            "despejar": { "$ref": "#/$defs/texto" }
+          }
+        },
+        "monstruos": { "type": "array", "items": { "$ref": "#/$defs/grupoMonstruos" } },
+        "objetos": { "type": "array", "items": { "$ref": "#/$defs/objetoEnArea" } },
+        "fichas": { "type": "array", "items": { "$ref": "#/$defs/fichaEnArea" } },
+        "recompensas": { "type": "array", "items": { "$ref": "#/$defs/recompensa" } },
+        "notasInvasor": { "type": "string" }
+      }
+    },
+    "tile": {
+      "type": "object",
+      "required": ["tipo", "x", "y", "rotacion"],
+      "additionalProperties": false,
+      "properties": {
+        "tipo": { "$ref": "#/$defs/id" },
+        "x": { "type": "integer", "minimum": 0, "description": "Columna de la esquina superior izquierda, en casillas." },
+        "y": { "type": "integer", "minimum": 0, "description": "Fila de la esquina superior izquierda, en casillas." },
+        "rotacion": { "enum": [0, 90, 180, 270] },
+        "ancho": { "type": "integer", "minimum": 1, "maximum": 20, "description": "Ancho en casillas ya rotado (solo para dibujar el mapa)." },
+        "alto": { "type": "integer", "minimum": 1, "maximum": 20, "description": "Alto en casillas ya rotado (solo para dibujar el mapa)." },
+        "nota": { "type": "string" }
+      }
+    },
+    "grupoMonstruos": {
+      "type": "object",
+      "required": ["tipo", "cantidad"],
+      "additionalProperties": false,
+      "properties": {
+        "tipo": { "$ref": "#/$defs/id" },
+        "cantidad": { "type": "integer", "minimum": 1, "maximum": 12 }
+      }
+    },
+    "objetoEnArea": {
+      "type": "object",
+      "required": ["id", "tipo"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "tipo": { "$ref": "#/$defs/id" },
+        "cantidad": { "type": "integer", "minimum": 1, "default": 1 },
+        "texto": { "type": "string" }
+      }
+    },
+    "fichaEnArea": {
+      "type": "object",
+      "required": ["tipo"],
+      "additionalProperties": false,
+      "properties": {
+        "tipo": { "$ref": "#/$defs/id" },
+        "cantidad": { "type": "integer", "minimum": 1, "default": 1 },
+        "nota": { "type": "string" }
+      }
+    },
+    "recompensa": {
+      "type": "object",
+      "required": ["tipo", "texto"],
+      "additionalProperties": false,
+      "properties": {
+        "tipo": { "enum": ["texto", "otorgarObjeto", "desbloquearPuerta", "activarEvento", "revelarInfo"] },
+        "texto": { "$ref": "#/$defs/texto" },
+        "objeto": { "$ref": "#/$defs/id" },
+        "cantidad": { "type": "integer", "minimum": 1 },
+        "puerta": { "$ref": "#/$defs/id" },
+        "evento": { "$ref": "#/$defs/id" },
+        "area": { "$ref": "#/$defs/id" }
+      },
+      "allOf": [
+        { "if": { "properties": { "tipo": { "const": "otorgarObjeto" } } }, "then": { "required": ["objeto"] } },
+        { "if": { "properties": { "tipo": { "const": "desbloquearPuerta" } } }, "then": { "required": ["puerta"] } },
+        { "if": { "properties": { "tipo": { "const": "activarEvento" } } }, "then": { "required": ["evento"] } }
+      ]
+    },
+    "puerta": {
+      "type": "object",
+      "required": ["id", "desde", "hacia", "tipo"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "desde": { "$ref": "#/$defs/id" },
+        "hacia": { "$ref": "#/$defs/id" },
+        "tipo": { "enum": ["normal", "roja", "azul", "amarilla", "evento", "paso", "teleportador"] },
+        "textos": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "abrir": { "type": "string" },
+            "bloqueada": { "type": "string" }
+          }
+        },
+        "requisitos": { "$ref": "#/$defs/requisito" },
+        "posicion": {
+          "type": "object",
+          "required": ["x", "y", "orientacion"],
+          "additionalProperties": false,
+          "properties": {
+            "x": { "type": "integer", "minimum": 0 },
+            "y": { "type": "integer", "minimum": 0 },
+            "orientacion": { "enum": ["horizontal", "vertical"] }
+          }
+        }
+      }
+    },
+    "requisito": {
+      "type": "object",
+      "description": "Exactamente una condicion: todas | alguna | areaDespejada | objeto (+cantidad opcional) | puertaAbierta | evento.",
+      "additionalProperties": false,
+      "properties": {
+        "todas": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/requisito" } },
+        "alguna": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/requisito" } },
+        "areaDespejada": { "$ref": "#/$defs/id" },
+        "objeto": { "$ref": "#/$defs/id" },
+        "cantidad": { "type": "integer", "minimum": 1 },
+        "puertaAbierta": { "$ref": "#/$defs/id" },
+        "evento": { "$ref": "#/$defs/id" }
+      },
+      "dependentRequired": { "cantidad": ["objeto"] },
+      "oneOf": [
+        { "required": ["todas"] },
+        { "required": ["alguna"] },
+        { "required": ["areaDespejada"] },
+        { "required": ["objeto"] },
+        { "required": ["puertaAbierta"] },
+        { "required": ["evento"] }
+      ]
+    }
+  }
+}
